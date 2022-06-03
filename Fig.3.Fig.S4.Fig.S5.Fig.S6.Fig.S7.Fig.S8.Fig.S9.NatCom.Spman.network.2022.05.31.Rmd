@@ -1,0 +1,1035 @@
+---
+title: "Untitled"
+output: html_document
+date: '2022-05-31'
+---
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 9, fig.width = 9}
+rm(list=ls())
+library(vegan)
+#library(SpiecEasi)
+library(psych)##
+library(igraph)
+#setwd("~/GaoC/R")
+library(beepr)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+#habitat <- "Root"; treatment <- "Control"; tpA <- 2; tpB <- 9
+
+fq <- 7; abu <- 19; 
+
+SpMan<-function(fq, abu, treatment, tpA, tpB){
+  
+  d1 <- d1.raw [env.R$Treatment1==treatment & env.R$TP > tpA & env.R$TP < tpB , ]
+  d1 <- d1 [,specnumber(t(d1)) > fq & colSums(d1)> abu]
+  d2 <- d2.raw [env.R$Treatment1==treatment & env.R$TP > tpA & env.R$TP < tpB, ]
+  d2 <- d2[, specnumber(t(d2)) > fq & colSums(d2)> abu]
+  env.R.tmp0 <- env.R [env.R$Treatment1==treatment & env.R$TP > tpA & env.R$TP < tpB , ]
+  
+  d3 <- d3.raw [env.Z$Treatment1==treatment & env.Z$TP > tpA & env.Z$TP < tpB , ]
+  d3 <- d3 [,specnumber(t(d3)) > fq & colSums(d3)> abu]
+  d4 <- d4.raw [env.Z$Treatment1==treatment & env.Z$TP > tpA & env.Z$TP < tpB , ]
+  d4 <- d4 [,specnumber(t(d4)) > fq & colSums(d4)> abu]
+  env.Z.tmp0 <- env.Z [env.Z$Treatment1==treatment & env.Z$TP > tpA & env.Z$TP < tpB , ]
+  
+  d5 <- d5.raw [env.S$Treatment1==treatment & env.S$TP > tpA & env.S$TP < tpB, ]
+  d5 <- d5[, specnumber(t(d5)) > fq & colSums(d5)> abu]
+  d6 <- d6.raw [env.S$Treatment1==treatment & env.S$TP > tpA & env.S$TP < tpB , ]
+  d6 <- d6 [,specnumber(t(d6)) > fq & colSums(d6)> abu]
+  env.S.tmp0 <- env.S [env.S$Treatment1==treatment & env.S$TP > tpA & env.S$TP < tpB , ]
+  
+  d7 <- d7.raw [env.L$Treatment1==treatment & env.L$TP > tpA & env.L$TP < tpB , ]
+  d7 <- d7[,specnumber(t(d7)) > fq & colSums(d7)> abu]
+  d8 <- d8.raw [env.L$Treatment1==treatment & env.L$TP > tpA & env.L$TP < tpB, ]
+  d8 <- d8[, specnumber(t(d8)) > fq & colSums(d8)> abu]
+  env.L.tmp0 <- env.L [env.L$Treatment1==treatment & env.L$TP > tpA & env.L$TP < tpB , ]
+  
+  saveRDS(env.L.tmp0, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.env.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(env.S.tmp0, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.env.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(env.Z.tmp0, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.env.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(env.R.tmp0, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.env.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d1, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.bac.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d2, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.fung.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d3, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.bac.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d4, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.fung.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d5, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.bac.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d6, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.fung.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d7, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.bac.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d8, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.fung.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  d12<-cbind(d1,d2)
+  spman.d12 = corr.test(d12, use="pairwise",method="spearman",adjust="fdr", alpha=.05, ci=FALSE)
+  saveRDS(spman.d12, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/SpMan.crossBF.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+
+  d34<-cbind(d3,d4)
+  spman.d34 = corr.test(d34, use="pairwise",method="spearman",adjust="fdr", alpha=.05, ci=FALSE)
+  saveRDS(spman.d34, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/SpMan.crossBF.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  d56<-cbind(d5,d6)
+  spman.d56 = corr.test(d56, use="pairwise",method="spearman",adjust="fdr", alpha=.05, ci=FALSE)
+  saveRDS(spman.d56, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/SpMan.crossBF.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  d78<-cbind(d7,d8)
+  spman.d78 = corr.test(d78, use="pairwise",method="spearman",adjust="fdr", alpha=.05, ci=FALSE)
+  saveRDS(spman.d78, paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/SpMan.crossBF.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+beep()
+}
+
+#SpMan(fq, abu, "Control", 2, 9)
+#SpMan(fq, abu, "Pre_flowering_drought", 2, 9)
+#SpMan(fq, abu, "Control", 8, 18)
+#SpMan(fq, abu, "Pre_flowering_drought", 8, 18)
+#SpMan(fq, abu, "Control", 9, 18)
+#SpMan(fq, abu, "Post_flowering_drought", 9, 18)
+
+######################################
+# significant positive correlations #
+#####################################
+
+#setwd("~/GaoC/R")
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+
+#habitat <- "Root"; treatment <- "Control"; tpA <- 2; tpB <- 9
+
+r.cutoff = 0.6
+p.cutoff = 0.05
+
+SpMan.Rsig<-function(fq, abu, habitat, treatment, tpA, tpB){
+  d1 <- readRDS(paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.bac.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  d2 <- readRDS(paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/data.fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  d12 <- data.frame(d1, d2)
+  
+  
+  spman.r0 <- readRDS(paste0("Fig.3/BFT.SpMan.sig.df.FDR.padj.2022.05.31/SpMan.crossBF.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+
+  Cor<-as.matrix(spman.r0$r)
+  Cor.df<-data.frame(row=rownames(Cor)[row(Cor)[upper.tri(Cor)]], 
+                     col=colnames(Cor)[col(Cor)[upper.tri(Cor)]], Cor=Cor[upper.tri(Cor)])
+  
+  P0<-as.matrix(spman.r0$p)
+  P.df<-data.frame(row=rownames(P0)[row(P0)[upper.tri(P0)]], 
+                     col=colnames(P0)[col(P0)[upper.tri(P0)]], p=P0[upper.tri(P0)])
+  
+  df <- data.frame(Cor.df,  P.df, Habitat = habitat, Treatment = treatment, TPA = tpA)
+  da.tmp<-df.sig<- df[ df$Cor > r.cutoff & df$p < p.cutoff,] 
+  V1<-data.frame("v1"=da.tmp$row); V2<-data.frame("v2"=da.tmp$col)
+  IDsub1<-ID.tmp[ID.tmp$OTU.ID %in% V1$v1, ]; IDsub2<-ID.tmp[ID.tmp$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  df.tmp<-data.frame(da.tmp, M1, M2)
+  saveRDS(df.tmp, paste0("Fig.3/BFT.SpMan.sig.df.2022.05.31/SpMan.Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+}
+
+SpMan.Rsig(fq, abu,"Root", "Control", 2, 9)
+SpMan.Rsig(fq, abu,"Root", "Pre_flowering_drought", 2, 9)
+SpMan.Rsig(fq, abu,"Root", "Control", 8, 18)
+SpMan.Rsig(fq, abu,"Root", "Pre_flowering_drought", 8, 18)
+#SpMan.Rsig(fq, abu,"Root", "Control", 9, 18)
+#SpMan.Rsig(fq, abu,"Root", "Post_flowering_drought", 9, 18)
+
+SpMan.Rsig(fq, abu,"Rhizosphere", "Control", 2, 9)
+SpMan.Rsig(fq, abu,"Rhizosphere", "Pre_flowering_drought", 2, 9)
+SpMan.Rsig(fq, abu,"Rhizosphere", "Control", 8, 18)
+SpMan.Rsig(fq, abu,"Rhizosphere", "Pre_flowering_drought", 8, 18)
+#SpMan.Rsig(fq, abu,"Rhizosphere", "Control", 9, 18)
+#SpMan.Rsig(fq, abu,"Rhizosphere", "Post_flowering_drought", 9, 18)
+
+SpMan.Rsig(fq, abu,"Soil", "Control", 2, 9)
+SpMan.Rsig(fq, abu,"Soil", "Pre_flowering_drought", 2, 9)
+SpMan.Rsig(fq, abu,"Soil", "Control", 8, 18)
+SpMan.Rsig(fq, abu,"Soil", "Pre_flowering_drought", 8, 18)
+#SpMan.Rsig(fq, abu,"Soil", "Control", 9, 18)
+#SpMan.Rsig(fq, abu,"Soil", "Post_flowering_drought", 9, 18)
+
+
+SpMan.Rsig(fq, abu,"Leaf", "Control", 2, 9)
+SpMan.Rsig(fq, abu,"Leaf", "Pre_flowering_drought", 2, 9)
+SpMan.Rsig(fq, abu,"Leaf", "Control", 8, 18)
+SpMan.Rsig(fq, abu,"Leaf", "Pre_flowering_drought", 8, 18)
+#SpMan.Rsig(fq, abu,"Leaf", "Control", 9, 18)
+#SpMan.Rsig(fq, abu,"Leaf", "Post_flowering_drought", 9, 18)
+
+
+
+
+library(vegan)
+#library(SpiecEasi)
+library(psych)##
+library(igraph)
+#setwd("~/GaoC/R")
+library(beepr)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+
+#habitat <- "Root"; treatment <- "Control"; tpA <- 8; tpB <- 18; type = "SpMan"; fq <- 7; abu <- 19; 
+library(igraph)
+
+####################
+# Module cross BF###
+####################
+
+bac.fung.cross.module.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  
+  da<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  modularity(fun.fc,membership(fun.fc))
+  membership(fun.fc)
+  print(sizes(fun.fc))###
+  fun.comps <- membership(fun.fc)
+  colbar <-c("#0000FF","#FF3399","#FFCC33","#9999FF", "#FF99FF", "#FFFFCC",
+             "#33FFFF","#CCFF00","#CCFFCC","#FF3300","#CC99CC","#CC66CC","#FFFFCC","#CC0033","#666666","slateblue1","springgreen","steelblue1","tan1","thistle1","tomato","turquoise", "violet", "red", "yellowgreen",
+             "peachpuff", "peru", "pink", "plum2", "purple","wheat", "cornsilk3","cornsilk","coral4","coral",
+             "chocolate4","chocolate","black","chartreuse4","chartreuse","burlywood4","burlywood","brown4","blue","bisque4","bisque",
+             "azure4","azure","aquamarine4","aquamarine","antiquewhite4","antiquewhite","aliceblue","dodgerblue4","dodgerblue","dimgrey",
+             "deepskyblue4", "deepskyblue", "deeppink4", "deeppink","darkviolet", "darkslategray4","darkslategray",
+             "darkseagreen4", "darkseagreen", "darksalmon", "darkred", "darkorchid4", "darkorchid", "darkorange4",
+             "darkorange","firebrick","darkgreen", "darkgoldenrod4","grey", "darkgoldenrod", "darkcyan")
+  V(g)$color <- colbar[fun.comps]
+  
+  set.seed(123)
+  plot(g, edge.width=0.5,edge.color="grey", vertex.frame.color=NA,vertex.label=NA,edge.lty=1,     edge.curved=T,vertex.size=3,margin=c(0, 0,0,0)) 
+}
+
+
+#pdf(paste0("BFT.SpMan.network.bac.fung.module.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.fung.cross.module.net("SpMan",fq, abu,"Root","Control", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Root","Control", 8, 18)
+bac.fung.cross.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+bac.fung.cross.module.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.fung.cross.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+bac.fung.cross.module.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+bac.fung.cross.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+bac.fung.cross.module.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.fung.cross.module.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+bac.fung.cross.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#bac.fung.cross.module.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+
+
+#####################
+# Module fung-fung###
+####################
+
+fung.module.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom == "Eukaryote" & da0$Kingdom.1 == "Eukaryote",]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  modularity(fun.fc,membership(fun.fc))
+  membership(fun.fc)
+  print(sizes(fun.fc))###
+  fun.comps <- membership(fun.fc)
+  colbar <-c("#0000FF","#FF3399","#FFCC33","#9999FF", "#FF99FF", "#FFFFCC",
+             "#33FFFF","#CCFF00","#CCFFCC","#FF3300","#CC99CC","#CC66CC","#FFFFCC","#CC0033","#666666","slateblue1","springgreen","steelblue1","tan1","thistle1","tomato","turquoise", "violet", "red", "yellowgreen",
+             "peachpuff", "peru", "pink", "plum2", "purple","wheat", "cornsilk3","cornsilk","coral4","coral",
+             "chocolate4","chocolate","black","chartreuse4","chartreuse","burlywood4","burlywood","brown4","blue","bisque4","bisque",
+             "azure4","azure","aquamarine4","aquamarine","antiquewhite4","antiquewhite","aliceblue","dodgerblue4","dodgerblue","dimgrey",
+             "deepskyblue4", "deepskyblue", "deeppink4", "deeppink","darkviolet", "darkslategray4","darkslategray",
+             "darkseagreen4", "darkseagreen", "darksalmon", "darkred", "darkorchid4", "darkorchid", "darkorange4",
+             "darkorange","firebrick","darkgreen", "darkgoldenrod4","grey", "darkgoldenrod", "darkcyan")
+  V(g)$color <- colbar[fun.comps]
+  
+  set.seed(123)
+  plot(g, edge.width=0.5,edge.color="grey", vertex.frame.color=NA,vertex.label=NA,edge.lty=1,     edge.curved=T,vertex.size=3,margin=c(0, 0,0,0)) 
+}
+#pdf(paste0("BFT.SpMan.network.fung.module.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+fung.module.net("SpMan",fq, abu,"Root","Control", 2, 9)
+fung.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+fung.module.net("SpMan",fq, abu,"Root","Control", 8, 18)
+fung.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#fung.module.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#fung.module.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+fung.module.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+fung.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+fung.module.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+fung.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#fung.module.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#fung.module.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+fung.module.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+fung.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+fung.module.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+fung.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#fung.module.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#fung.module.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+fung.module.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+fung.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+fung.module.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+fung.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#fung.module.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#fung.module.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+####################
+# Module bac-bac###
+####################
+
+bac.module.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom == "Prokaryote" & da0$Kingdom.1 == "Prokaryote",]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  modularity(fun.fc,membership(fun.fc))
+  membership(fun.fc)
+  print(sizes(fun.fc))###
+  fun.comps <- membership(fun.fc)
+  colbar <-c("#0000FF","#FF3399","#FFCC33","#9999FF", "#FF99FF", "#FFFFCC",
+             "#33FFFF","#CCFF00","#CCFFCC","#FF3300","#CC99CC","#CC66CC","#FFFFCC","#CC0033","#666666","slateblue1","springgreen","steelblue1","tan1","thistle1","tomato","turquoise", "violet", "red", "yellowgreen",
+             "peachpuff", "peru", "pink", "plum2", "purple","wheat", "cornsilk3","cornsilk","coral4","coral",
+             "chocolate4","chocolate","black","chartreuse4","chartreuse","burlywood4","burlywood","brown4","blue","bisque4","bisque",
+             "azure4","azure","aquamarine4","aquamarine","antiquewhite4","antiquewhite","aliceblue","dodgerblue4","dodgerblue","dimgrey",
+             "deepskyblue4", "deepskyblue", "deeppink4", "deeppink","darkviolet", "darkslategray4","darkslategray",
+             "darkseagreen4", "darkseagreen", "darksalmon", "darkred", "darkorchid4", "darkorchid", "darkorange4",
+             "darkorange","firebrick","darkgreen", "darkgoldenrod4","grey", "darkgoldenrod", "darkcyan")
+  V(g)$color <- colbar[fun.comps]
+  
+  set.seed(123)
+  plot(g, edge.width=0.5,edge.color="grey", vertex.frame.color=NA,vertex.label=NA,edge.lty=1,     edge.curved=T,vertex.size=3,margin=c(0, 0,0,0)) 
+}
+#pdf(paste0("BFT.SpMan.network.bac.module.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.module.net("SpMan",fq, abu,"Root","Control", 2, 9)
+bac.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.module.net("SpMan",fq, abu,"Root","Control", 8, 18)
+bac.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#bac.module.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#bac.module.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+bac.module.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.module.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#bac.module.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#bac.module.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+bac.module.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+bac.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.module.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+bac.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#bac.module.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#bac.module.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+bac.module.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.module.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+bac.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#bac.module.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#bac.module.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+
+####################
+# Module bac-fung inter###
+####################
+
+bac.fung.inter.module.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom != da0$Kingdom.1 ,]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  modularity(fun.fc,membership(fun.fc))
+  membership(fun.fc)
+  print(sizes(fun.fc))###
+  fun.comps <- membership(fun.fc)
+  colbar <-c("#0000FF","#FF3399","#FFCC33","#9999FF", "#FF99FF", "#FFFFCC",
+             "#33FFFF","#CCFF00","#CCFFCC","#FF3300","#CC99CC","#CC66CC","#FFFFCC","#CC0033","#666666","slateblue1","springgreen","steelblue1","tan1","thistle1","tomato","turquoise", "violet", "red", "yellowgreen",
+             "peachpuff", "peru", "pink", "plum2", "purple","wheat", "cornsilk3","cornsilk","coral4","coral",
+             "chocolate4","chocolate","black","chartreuse4","chartreuse","burlywood4","burlywood","brown4","blue","bisque4","bisque",
+             "azure4","azure","aquamarine4","aquamarine","antiquewhite4","antiquewhite","aliceblue","dodgerblue4","dodgerblue","dimgrey",
+             "deepskyblue4", "deepskyblue", "deeppink4", "deeppink","darkviolet", "darkslategray4","darkslategray",
+             "darkseagreen4", "darkseagreen", "darksalmon", "darkred", "darkorchid4", "darkorchid", "darkorange4",
+             "darkorange","firebrick","darkgreen", "darkgoldenrod4","grey", "darkgoldenrod", "darkcyan")
+  V(g)$color <- colbar[fun.comps]
+  
+  set.seed(123)
+  plot(g, edge.width=0.5,edge.color="grey", vertex.frame.color=NA,vertex.label=NA,edge.lty=1,     edge.curved=T,vertex.size=3,margin=c(0, 0,0,0)) 
+}
+#pdf(paste0("BFT.SpMan.network.bac.fung.inter.module.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.fung.inter.module.net("SpMan",fq, abu,"Root","Control", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Root","Control", 8, 18)
+bac.fung.inter.module.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+bac.fung.inter.module.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.fung.inter.module.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+bac.fung.inter.module.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+bac.fung.inter.module.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+bac.fung.inter.module.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.fung.inter.module.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+bac.fung.inter.module.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#bac.fung.inter.module.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+
+##########
+#Plotting##
+###########
+library(igraph)
+bac.fung.cross.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  
+  da<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  g.color$Kingdom1 <- factor(g.color$Kingdom,  labels = c("blue", "black"))
+  levels(g.color$Kingdom1) = c("blue", "black") 
+  V(g)$color = as.character(g.color$Kingdom1)
+  
+  # network property
+  # 边数量 The size of the graph (number of edges)
+  num.edges = length(E(g)) # length(curve_multiple(g))
+  #print(num.edges)
+  # 顶点数量 Order (number of vertices) of a graph
+  num.vertices = length(V(g))# length(diversity(g, weights = NULL, vids = V(g)))
+  #print(num.vertices)
+  # 连接数(connectance) 网络中物种之间实际发生的相互作用数之和（连接数之和）占总的潜在相互作用数（连接数）的比例，可以反映网络的复杂程度
+  connectance = edge_density(g,loops=FALSE)# 同 graph.density;loops如果为TRUE,允许自身环（self loops即A--A或B--B）的存在
+  #print(connectance)
+  # 平均度(Average degree)
+  average.degree = mean(igraph::degree(g))# 或者为2M/N,其中M 和N 分别表示网络的边数和节点数。
+  #print(average.degree)
+  # 平均路径长度(Average path length)
+  average.path.length = average.path.length(g) # 同mean_distance(g) # mean_distance calculates the average path length in a graph
+  #print(average.path.length)
+  # 直径(Diameter)
+  diameter = diameter(g, directed = FALSE, unconnected = TRUE, weights = NULL)
+  #print(diameter)
+  # 群连通度 edge connectivity / group adhesion
+  edge.connectivity = edge_connectivity(g)
+  #print(edge.connectivity)
+  # 聚集系数(Clustering coefficient)：分局域聚类系数和全局聚集系数，是反映网络中节点的紧密关系的参数，也称为传递性。整个网络的全局聚集系数C表征了整个网络的平均的“成簇性质”。
+  clustering.coefficient = transitivity(g) 
+  #print(clustering.coefficient)
+  no.clusters = no.clusters(g)
+  #print(no.clusters)
+  # 介数中心性(Betweenness centralization)
+  centralization.betweenness = centralization.betweenness(g)$centralization 
+  #print(centralization.betweenness)
+  # 度中心性(Degree centralization)
+  centralization.degree = centralization.degree(g)$centralization
+  #print(centralization.degree)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  #print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  Modularity<-modularity(fun.fc,membership(fun.fc))
+  #membership(fun.fc)
+  No.modules<-nrow(data.frame(sizes(fun.fc)))
+  
+  df.tmp<-data.frame(network = "BF-FF-BB",type, habitat, treatment, tpA, tpB,  num.edges, num.vertices, connectance, average.degree, average.path.length, diameter, edge.connectivity, clustering.coefficient,
+                     no.clusters, centralization.betweenness,centralization.degree,  Modularity, No.modules)
+  saveRDS(df.tmp, paste0("Fig.3/SpMan.network.property.2022.05.31/SpMan.network.property.BF.BB.FF.",type,".",habitat, ".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  # Edge property: assign postive/negative edges into solid(lty=1)/dash(lty=3) lines
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  
+  #Edge property: assign intraBacteria/intraFungi/interBacteriaFungi edges into skyblue, grey and red colors
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=3) 
+}
+
+
+
+#pdf(paste0("BFT.SpMan.network.bac.fung.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.fung.cross.net("SpMan",fq, abu,"Root","Control", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Root","Control", 8, 18)
+bac.fung.cross.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+bac.fung.cross.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.fung.cross.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+bac.fung.cross.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+bac.fung.cross.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+bac.fung.cross.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+bac.fung.cross.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#bac.fung.cross.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+################
+##Inter-bac-Fung#
+################
+bac.fung.inter.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  ID.tmp$shape <- "circle"; ID.tmp$shape[ID.tmp$Kingdom=="Eukaryote"]<-"square"
+  ID.tmp$color <- "grey"
+  ID.tmp$color[ID.tmp$Funguild=="Plant pathogen"] <- "purple"
+  ID.tmp$color[ID.tmp$Funguild=="SaprotrophYeast"] <- "red"
+  ID.tmp$color[ID.tmp$Funguild=="Plant pathogenYeast"] <- "red"
+  ID.tmp$color[ID.tmp$Funguild=="Saprotroph"] <- "brown"
+  ID.tmp$color[ID.tmp$Funguild=="Arbuscular mycorrhizal"] <- "green"
+  ID.tmp$color[ID.tmp$Funguild=="Endophyte"] <- "blue"
+  ID.tmp$color[ID.tmp$Phylum=="Acidobacteria"] <- "blue"
+  ID.tmp$color[ID.tmp$Phylum=="Actinobacteria"] <- "red"
+  ID.tmp$color[ID.tmp$Phylum=="Bacteroidetes"] <- "black"
+  ID.tmp$color[ID.tmp$Phylum=="Proteobacteria"] <- "green"
+  ID.tmp$color[ID.tmp$Phylum=="Chloroflexi"] <- "brown"
+  ID.tmp$color[ID.tmp$Phylum=="Firmicutes"] <- "yellow"
+  ID.tmp$color[ID.tmp$Phylum=="Gemmatimonadetes"] <- "pink"
+  ID.tmp$color[ID.tmp$Phylum=="Verrucomicrobia"] <- "purple"
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom != da0$Kingdom.1 ,]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  #levels(g.color$Kingdom) = c("blue", "black") 
+  V(g)$color = as.character(g.color$color)
+  V(g)$shape <-as.character(g.color$shape)
+  # network property
+  # 边数量 The size of the graph (number of edges)
+  num.edges = length(E(g)) # length(curve_multiple(g))
+  #print(num.edges)
+  # 顶点数量 Order (number of vertices) of a graph
+  num.vertices = length(V(g))# length(diversity(g, weights = NULL, vids = V(g)))
+  #print(num.vertices)
+  # 连接数(connectance) 网络中物种之间实际发生的相互作用数之和（连接数之和）占总的潜在相互作用数（连接数）的比例，可以反映网络的复杂程度
+  connectance = edge_density(g,loops=FALSE)# 同 graph.density;loops如果为TRUE,允许自身环（self loops即A--A或B--B）的存在
+  #print(connectance)
+  # 平均度(Average degree)
+  average.degree = mean(igraph::degree(g))# 或者为2M/N,其中M 和N 分别表示网络的边数和节点数。
+  #print(average.degree)
+  # 平均路径长度(Average path length)
+  average.path.length = average.path.length(g) # 同mean_distance(g) # mean_distance calculates the average path length in a graph
+  #print(average.path.length)
+  # 直径(Diameter)
+  diameter = diameter(g, directed = FALSE, unconnected = TRUE, weights = NULL)
+  #print(diameter)
+  # 群连通度 edge connectivity / group adhesion
+  edge.connectivity = edge_connectivity(g)
+  #print(edge.connectivity)
+  # 聚集系数(Clustering coefficient)：分局域聚类系数和全局聚集系数，是反映网络中节点的紧密关系的参数，也称为传递性。整个网络的全局聚集系数C表征了整个网络的平均的“成簇性质”。
+  clustering.coefficient = transitivity(g) 
+  #print(clustering.coefficient)
+  no.clusters = no.clusters(g)
+  #print(no.clusters)
+  # 介数中心性(Betweenness centralization)
+  centralization.betweenness = centralization.betweenness(g)$centralization 
+  #print(centralization.betweenness)
+  # 度中心性(Degree centralization)
+  centralization.degree = centralization.degree(g)$centralization
+  #print(centralization.degree)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  #print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  Modularity<-modularity(fun.fc,membership(fun.fc))
+  #membership(fun.fc)
+  No.modules<-nrow(data.frame(sizes(fun.fc)))
+  
+  df.tmp<-data.frame(network = "BF",type, habitat, treatment, tpA, tpB,  num.edges, num.vertices, connectance, average.degree, average.path.length, diameter, edge.connectivity, clustering.coefficient,
+                     no.clusters, centralization.betweenness,centralization.degree,  Modularity, No.modules)
+  saveRDS(df.tmp, paste0("Fig.3/SpMan.network.property.2022.05.31/SpMan.network.property.BF.",type,".",habitat, ".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  # Edge property: assign postive/negative edges into solid(lty=1)/dash(lty=3) lines
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  
+  #Edge property: assign intraBacteria/intraFungi/interBacteriaFungi edges into skyblue, grey and red colors
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=5) 
+}
+
+#pdf(paste0("BFT.SpMan.network.inter-bac-fung.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.fung.inter.net("SpMan",fq, abu,"Root","Control", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Root","Control", 8, 18)
+bac.fung.inter.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+bac.fung.inter.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.fung.inter.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+bac.fung.inter.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+bac.fung.inter.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+bac.fung.inter.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.fung.inter.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+bac.fung.inter.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#bac.fung.inter.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+##################
+# Fungal network #
+##################
+fung.intra.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  ID.tmp$shape <- "circle"; ID.tmp$shape[ID.tmp$Kingdom=="Eukaryote"]<-"square"
+  ID.tmp$color <- "grey"
+  ID.tmp$color[ID.tmp$Funguild=="Plant pathogen"] <- "purple"
+  ID.tmp$color[ID.tmp$Funguild=="SaprotrophYeast"] <- "red"
+  ID.tmp$color[ID.tmp$Funguild=="Plant pathogenYeast"] <- "red"
+  ID.tmp$color[ID.tmp$Funguild=="Saprotroph"] <- "brown"
+  ID.tmp$color[ID.tmp$Funguild=="Arbuscular mycorrhizal"] <- "green"
+  ID.tmp$color[ID.tmp$Funguild=="Endophyte"] <- "blue"
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom == "Eukaryote" & da0$Kingdom.1 == "Eukaryote",]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  #levels(g.color$Kingdom) = c("blue", "black") 
+  V(g)$color = as.character(g.color$color)
+  V(g)$shape <-as.character(g.color$shape)
+  # network property
+  # 边数量 The size of the graph (number of edges)
+  num.edges = length(E(g)) # length(curve_multiple(g))
+  #print(num.edges)
+  # 顶点数量 Order (number of vertices) of a graph
+  num.vertices = length(V(g))# length(diversity(g, weights = NULL, vids = V(g)))
+  #print(num.vertices)
+  # 连接数(connectance) 网络中物种之间实际发生的相互作用数之和（连接数之和）占总的潜在相互作用数（连接数）的比例，可以反映网络的复杂程度
+  connectance = edge_density(g,loops=FALSE)# 同 graph.density;loops如果为TRUE,允许自身环（self loops即A--A或B--B）的存在
+  #print(connectance)
+  # 平均度(Average degree)
+  average.degree = mean(igraph::degree(g))# 或者为2M/N,其中M 和N 分别表示网络的边数和节点数。
+  #print(average.degree)
+  # 平均路径长度(Average path length)
+  average.path.length = average.path.length(g) # 同mean_distance(g) # mean_distance calculates the average path length in a graph
+  #print(average.path.length)
+  # 直径(Diameter)
+  diameter = diameter(g, directed = FALSE, unconnected = TRUE, weights = NULL)
+  #print(diameter)
+  # 群连通度 edge connectivity / group adhesion
+  edge.connectivity = edge_connectivity(g)
+  #print(edge.connectivity)
+  # 聚集系数(Clustering coefficient)：分局域聚类系数和全局聚集系数，是反映网络中节点的紧密关系的参数，也称为传递性。整个网络的全局聚集系数C表征了整个网络的平均的“成簇性质”。
+  clustering.coefficient = transitivity(g) 
+  #print(clustering.coefficient)
+  no.clusters = no.clusters(g)
+  #print(no.clusters)
+  # 介数中心性(Betweenness centralization)
+  centralization.betweenness = centralization.betweenness(g)$centralization 
+  #print(centralization.betweenness)
+  # 度中心性(Degree centralization)
+  centralization.degree = centralization.degree(g)$centralization
+  #print(centralization.degree)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  #print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  Modularity<-modularity(fun.fc,membership(fun.fc))
+  #membership(fun.fc)
+  No.modules<-nrow(data.frame(sizes(fun.fc)))
+  
+  df.tmp<-data.frame(network = "FF",type, habitat, treatment, tpA, tpB,  num.edges, num.vertices, connectance, average.degree, average.path.length, diameter, edge.connectivity, clustering.coefficient,
+                     no.clusters, centralization.betweenness,centralization.degree,  Modularity, No.modules)
+  saveRDS(df.tmp, paste0("Fig.3/SpMan.network.property.2022.05.31/SpMan.network.property.FF.",type,".",habitat, ".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  # Edge property: assign postive/negative edges into solid(lty=1)/dash(lty=3) lines
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  
+  #Edge property: assign intraBacteria/intraFungi/interBacteriaFungi edges into skyblue, grey and red colors
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=5) 
+}
+
+#pdf(paste0("BFT.SpMan.network.fung.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+fung.intra.net("SpMan",fq, abu,"Root","Control", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Root","Control", 8, 18)
+fung.intra.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#fung.intra.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#fung.intra.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+fung.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+fung.intra.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#fung.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#fung.intra.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+fung.intra.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+fung.intra.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#fung.intra.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#fung.intra.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+fung.intra.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+fung.intra.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#fung.intra.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#fung.intra.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+####################
+#Bacterial network##
+####################
+bac.intra.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  ID.tmp$shape <- "circle"; ID.tmp$shape[ID.tmp$Kingdom=="Eukaryote"]<-"square"
+  ID.tmp$color <- "grey"
+  ID.tmp$color[ID.tmp$Phylum=="Acidobacteria"] <- "blue"
+  ID.tmp$color[ID.tmp$Phylum=="Actinobacteria"] <- "red"
+  ID.tmp$color[ID.tmp$Phylum=="Bacteroidetes"] <- "black"
+  ID.tmp$color[ID.tmp$Phylum=="Proteobacteria"] <- "green"
+  ID.tmp$color[ID.tmp$Phylum=="Chloroflexi"] <- "brown"
+  ID.tmp$color[ID.tmp$Phylum=="Firmicutes"] <- "yellow"
+  ID.tmp$color[ID.tmp$Phylum=="Gemmatimonadetes"] <- "pink"
+  ID.tmp$color[ID.tmp$Phylum=="Verrucomicrobia"] <- "purple"
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom == "Prokaryote" & da0$Kingdom.1 == "Prokaryote",]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  #levels(g.color$Kingdom) = c("blue", "black") 
+  V(g)$color = as.character(g.color$color)
+  V(g)$shape <-as.character(g.color$shape)
+  # network property
+  # 边数量 The size of the graph (number of edges)
+  num.edges = length(E(g)) # length(curve_multiple(g))
+  #print(num.edges)
+  # 顶点数量 Order (number of vertices) of a graph
+  num.vertices = length(V(g))# length(diversity(g, weights = NULL, vids = V(g)))
+  #print(num.vertices)
+  # 连接数(connectance) 网络中物种之间实际发生的相互作用数之和（连接数之和）占总的潜在相互作用数（连接数）的比例，可以反映网络的复杂程度
+  connectance = edge_density(g,loops=FALSE)# 同 graph.density;loops如果为TRUE,允许自身环（self loops即A--A或B--B）的存在
+  #print(connectance)
+  # 平均度(Average degree)
+  average.degree = mean(igraph::degree(g))# 或者为2M/N,其中M 和N 分别表示网络的边数和节点数。
+  #print(average.degree)
+  # 平均路径长度(Average path length)
+  average.path.length = average.path.length(g) # 同mean_distance(g) # mean_distance calculates the average path length in a graph
+  #print(average.path.length)
+  # 直径(Diameter)
+  diameter = diameter(g, directed = FALSE, unconnected = TRUE, weights = NULL)
+  #print(diameter)
+  # 群连通度 edge connectivity / group adhesion
+  edge.connectivity = edge_connectivity(g)
+  #print(edge.connectivity)
+  # 聚集系数(Clustering coefficient)：分局域聚类系数和全局聚集系数，是反映网络中节点的紧密关系的参数，也称为传递性。整个网络的全局聚集系数C表征了整个网络的平均的“成簇性质”。
+  clustering.coefficient = transitivity(g) 
+  #print(clustering.coefficient)
+  no.clusters = no.clusters(g)
+  #print(no.clusters)
+  # 介数中心性(Betweenness centralization)
+  centralization.betweenness = centralization.betweenness(g)$centralization 
+  #print(centralization.betweenness)
+  # 度中心性(Degree centralization)
+  centralization.degree = centralization.degree(g)$centralization
+  #print(centralization.degree)
+  
+  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
+  #print(modularity(fun.fc))## 模块性大于0.45，说明网络有效##
+  Modularity<-modularity(fun.fc,membership(fun.fc))
+  #membership(fun.fc)
+  No.modules<-nrow(data.frame(sizes(fun.fc)))
+  
+  df.tmp<-data.frame(network = "BB",type, habitat, treatment, tpA, tpB,  num.edges, num.vertices, connectance, average.degree, average.path.length, diameter, edge.connectivity, clustering.coefficient,
+                     no.clusters, centralization.betweenness,centralization.degree,  Modularity, No.modules)
+  saveRDS(df.tmp, paste0("Fig.3/SpMan.network.property.2022.05.31/SpMan.network.property.BB.",type,".",habitat, ".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  # Edge property: assign postive/negative edges into solid(lty=1)/dash(lty=3) lines
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  
+  #Edge property: assign intraBacteria/intraFungi/interBacteriaFungi edges into skyblue, grey and red colors
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=5) 
+}
+
+
+#pdf(paste0("BFT.SpMan.network.bac.",fq, ".", abu, ".",".2021.08.16.pdf"), width=9, height=9)
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.intra.net("SpMan",fq, abu,"Root","Control", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Root","Control", 8, 18)
+bac.intra.net("SpMan",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+#bac.intra.net("SpMan",fq, abu,"Root","Control", 9, 18)
+#bac.intra.net("SpMan",fq, abu,"Root","Post_flowering_drought", 9, 18)
+
+bac.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.intra.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+#bac.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 9, 18)
+#bac.intra.net("SpMan",fq, abu,"Rhizosphere","Post_flowering_drought", 9, 18)
+
+bac.intra.net("SpMan",fq, abu,"Soil","Control", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Soil","Control", 8, 18)
+bac.intra.net("SpMan",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+#bac.intra.net("SpMan",fq, abu,"Soil","Control", 9, 18)
+#bac.intra.net("SpMan",fq, abu,"Soil","Post_flowering_drought", 9, 18)
+
+bac.intra.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Leaf","Control", 8, 18)
+bac.intra.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+#bac.intra.net("SpMan",fq, abu,"Leaf","Control", 9, 18)
+#bac.intra.net("SpMan",fq, abu,"Leaf","Post_flowering_drought", 9, 18)
+#dev.off()
+
+
+```
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 10, fig.width = 6}
+#pdf(paste0("BFT.SpMan.network.bac.fung.select.",fq, ".", abu, ".",".2021.08.16.pdf"), width=4, height=4)
+par(mfrow=c(2,2),mar=c(0, 0, 0, 0))
+fung.intra.net("SpMan",fq, abu,"Rhizosphere","Control", 2, 9)
+fung.intra.net("SpMan",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Leaf","Control", 2, 9)
+bac.intra.net("SpMan",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+#dev.off()
+```
+
+```{r, message=FALSE, warning=FALSE, fig.height = 10, fig.width = 6}
+library(tidyverse) 
+type = "SpMan"
+
+mydir = paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/")
+da <- list.files(path=mydir, full.names=TRUE) %>% map_dfr(readRDS)
+
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+#da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+da.fung <- droplevels(da[da$Kingdom == "Eukaryote" & da$Kingdom.1 == "Eukaryote" & da$Habitat == "Rhizosphere" & da$TPA ==2,])
+#da.fung$Treatment
+
+da.fung$interaction<-"Inter-Guilds"
+da.fung$interaction[da.fung$Funguild==da.fung$Funguild.1]<-"Intra-Guild"
+da.fung$ab<-1
+
+
+lev<-interaction(da.fung$interaction, da.fung$Treatment, da.fung$TPA, da.fung$Habitat,sep = ":") ## ccombining factors for Barplot profiling
+da1<-aggregate(da.fung$ab,by=list(lev) , sum) # generate the mean for each factor level
+library(splitstackshape)
+dax.fung<-cSplit(da1, "Group.1", ":")
+names(dax.fung)<-c("abu", "interaction","Treatment",  "tpA", "Habitat")
+dax.fung$Treatment<- factor(dax.fung$Treatment, labels=c("Control", "Drought"))
+#dax.fung$tpA<-factor(dax.fung$tpA, labels=c("PRE-Drought period", "PRE-Rewatering period", "POST-Drought period"))
+#dax.fung$Habitat <- factor(dax.fung$Habitat, labels = c("Root", "Rhizosphere", "Soil", "Leaf"))
+g1 <- ggplot(dax.fung, aes(x = Treatment, y = abu, fill= interaction)) +
+  geom_bar(stat='identity', position = "fill")+
+  theme_bw()+xlab("")+ylab("Proportion")+
+  scale_fill_manual(values = c("purple", "pink"))+
+  ggtitle("Rhizosphere: FF")+
+  theme(plot.title = element_text(size = 12,face="bold",hjust=0.5),
+        strip.text = element_text(size = 10,face="bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(colour="black", size=10, face="bold"),
+        axis.text.y=element_text(size=10,colour="black",face="bold"),
+        axis.text.x=element_text(size=10,colour="black",face="bold",angle = 45),
+        axis.title=element_text(size=10,colour="black",face="bold"))+
+  scale_y_continuous(labels = scales::percent)
+
+#####
+#####
+
+da.bac <- da[da$Kingdom == "Prokaryote" & da$Kingdom.1 == "Prokaryote" & da$Habitat == "Leaf" & da$TPA ==2,]
+#da.bac<-da[da$Links=="Bac-Bac",]
+da.bac$interaction<-"Inter-Phyla"
+da.bac$interaction[da.bac$Phylum==da.bac$Phylum.1]<-"Intra-Phylum"
+da.bac$ab<-1
+
+#str(da.bac$Phylum)
+
+lev<-interaction(da.bac$interaction, da.bac$Treatment, da.bac$TPA, da.bac$Habitat,sep = ":") ## ccombining factors for Barplot profiling
+da1<-aggregate(da.bac$ab,by=list(lev) , sum) # generate the mean for each factor level
+library(splitstackshape)
+dax.bac<-cSplit(da1, "Group.1", ":")
+names(dax.bac)<-c("abu", "interaction","Treatment",  "tpA", "Habitat")
+dax.bac$Treatment<- factor(dax.bac$Treatment, labels=c("Control", "Drought"))
+#dax.bac$tpA<-factor(dax.bac$tpA, labels=c("PRE-Drought period", "PRE-Rewatering period", "POST-Drought period"))
+g2 <- ggplot(dax.bac, aes(x = Treatment, y = abu, fill= interaction)) +
+  geom_bar(stat='identity', position = "fill")+
+  theme_bw()+xlab("")+ylab("Proportion")+
+  scale_fill_manual(values = c("purple", "pink"))+
+  ggtitle("Leaf: BB")+
+  theme(plot.title = element_text(size = 12,face="bold",hjust=0.5),
+        strip.text = element_text(size = 10,face="bold"),
+        legend.title = element_blank(),
+        legend.text = element_text(colour="black", size=10, face="bold"),
+        axis.text.y=element_text(size=10,colour="black",face="bold"),
+        axis.text.x=element_text(size=10,colour="black",face="bold",angle = 45),
+        axis.title=element_text(size=10,colour="black",face="bold"))+
+  scale_y_continuous(labels = scales::percent)
+
+
+
+#pdf("BFT.bac.fung.phylum.guild.2021.09.03.pdf", width = 3, height = 5) # Open a new pdf file
+library(gridExtra)
+grid.arrange(g1,g2)
+#dev.off() 
+
+
+```
+

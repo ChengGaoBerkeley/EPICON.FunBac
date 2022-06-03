@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+output: html_document
+date: '2022-06-03'
+---
+
+```{r, message=FALSE, warning=FALSE, fig.height = 6, fig.width = 4}
+rm(list=ls())
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+
+library(tidyverse) 
+mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.3/SpMan.network.property.2022.05.31"
+da0 <- data.frame(list.files(path=mydir, full.names=TRUE) %>% map_dfr(readRDS))
+
+da1 <- da0[ !c(da0$habitat == "Leaf" & da0$network %in% c("BF","FF","BF-FF-BB") & da0$tpA == 2),]
+
+da <- da1[da1$network!="BF-FF-BB",]
+da$Treatment2<-factor(da$treatment, labels = c(1,2))
+da$tpA <- factor(da$tpA, labels = c("Drought period", "Rewetting period"))
+da$habitat <-factor(da$habitat, levels = c("Root", "Rhizosphere", "Soil", "Leaf"))
+
+
+ggplot(da, aes(x= as.numeric(Treatment2),y= log(num.edges+1), color  = network )) + 
+  geom_smooth(method='lm', size =1, se = FALSE)+
+  geom_point(size = 3, alpha = 0.8)+
+  scale_color_manual(values = c("black", "blue","red", "cyan", "brown", "yellow"))+
+  scale_linetype_manual(values = c(3, 1, 2))+
+  xlab("")+ylab("Log (Number of edges + 1)")+theme_bw()+
+  guides(fill=guide_legend(title= "Type"))+
+  facet_grid(habitat~tpA)+
+  scale_x_continuous(breaks = c(1, 2),labels = c("Control", "Stress"))+
+  theme(strip.text = element_text(size = 8,face="bold"),
+        panel.spacing = unit(0, "lines"),
+        legend.title = element_text(colour="black", size=8, face="bold"),
+        legend.text = element_text(colour="black", size=8, face="bold"),
+        axis.text.x=element_text(colour="black",size=8,face="bold",angle = 90, hjust = 1),
+        axis.text.y=element_text(colour="black",size=8,face="bold"),
+        axis.title=element_text(colour="black",size=8 ,face="bold"))
+#ggsave("2022.06.01.SpMan.BFT.bac.fung.num.edges.CK.Stress.pdf", width = 4, height = 6)
+
+
+ggplot(da, aes(x= as.numeric(Treatment2),y= log(num.vertices+1), color  = network )) + 
+  geom_smooth(method='lm', size =1, se = FALSE)+
+  geom_point(size = 3, alpha = 0.8)+
+  scale_color_manual(values = c("black", "blue","red", "cyan", "brown", "yellow"))+
+  scale_linetype_manual(values = c(3, 1, 2))+
+  xlab("")+ylab("Log (Number of vertices + 1)")+theme_bw()+
+  guides(fill=guide_legend(title= "Type"))+
+  facet_grid(habitat~tpA)+
+  scale_x_continuous(breaks = c(1, 2),labels = c("Control", "Stress"))+
+  theme(strip.text = element_text(size = 8,face="bold"),
+        panel.spacing = unit(0, "lines"),
+        legend.title = element_text(colour="black", size=8, face="bold"),
+        legend.text = element_text(colour="black", size=8, face="bold"),
+        axis.text.x=element_text(colour="black",size=8,face="bold",angle = 90, hjust = 1),
+        axis.text.y=element_text(colour="black",size=8,face="bold"),
+        axis.title=element_text(colour="black",size=8 ,face="bold"))#
+#ggsave("2022.06.01.SpMan.BFT.bac.fung.num.vertices.CK.Stress.pdf", width = 4, height = 6)
+
+#
+#
+```
+

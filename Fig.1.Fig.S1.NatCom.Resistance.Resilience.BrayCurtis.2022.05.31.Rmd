@@ -1,0 +1,798 @@
+---
+title: "Resistance/Resilience"
+output: html_document
+---
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 6, fig.width = 12}
+
+########
+#Species#
+#########
+  
+
+#############
+#Bray-Curtis#
+#############
+
+
+rm(list=ls())
+library(vegan)
+
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+env.all<-rbind(env.R, env.Z, env.S, env.L)
+bac.all <- rbind (d1.raw, d3.raw, d5.raw, d7.raw)
+fung.all <- rbind(d2.raw, d4.raw, d6.raw, d8.raw)
+
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+
+
+#
+#habitat = "Root";  treatment <- "Pre_flowering_drought";  tpA <- 2; tpB <- 9
+Bray_Curtis<-function(habitat, treatment, tpA, tpB){
+  bac.tmp0 <- bac.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control" ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  fung.tmp0 <- fung.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  env.tmp0 <- env.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  d0.PRE = NULL
+  for (i in c((tpA+1):(tpB-1))){
+    library(ecodist)
+    tmp<-bac.tmp0[env.tmp0$TP== i ,]
+    env2<-env.tmp0[env.tmp0$TP== i ,]
+    bc<-vegdist(decostand(tmp, "hellinger"))
+    Treatment.distance<-distance(env2$Treatment124)
+    da<-data.frame(cbind(bc, Treatment.distance))
+    da$TP<- i
+    da$TPA <- tpA
+    da$type<-treatment
+    da$Life<-"Bacteria"
+    da$Habitat <- habitat
+    d0.PRE<-rbind(d0.PRE,da)
+    
+    tmp<-fung.tmp0[env.tmp0$TP== i ,]
+    env2<-env.tmp0[env.tmp0$TP== i ,]
+    bc<-vegdist(decostand(tmp, "hellinger"))
+    Treatment.distance<-distance(env2$Treatment124)
+    da<-data.frame(cbind(bc, Treatment.distance))
+    da$TP<- i
+    da$TPA <- tpA
+    da$type<-treatment
+    da$Life<-"Fungi"
+    da$Habitat <- habitat
+    d0.PRE<-rbind(d0.PRE,da)
+  }
+  saveRDS(d0.PRE, paste0("Fig.1/BFT.Bray_Curtis.2022.05.31/Bray_Curtis.groups.",habitat,".", treatment,".",tpA,".",tpB,".RDS"))
+}
+
+Bray_Curtis("Root","Pre_flowering_drought", 2, 9)
+Bray_Curtis("Rhizosphere","Pre_flowering_drought", 2, 9)
+Bray_Curtis("Soil","Pre_flowering_drought", 2, 9)
+Bray_Curtis("Leaf","Pre_flowering_drought", 2, 9)
+
+Bray_Curtis("Root","Pre_flowering_drought", 8, 18)
+Bray_Curtis("Rhizosphere","Pre_flowering_drought", 8, 18)
+Bray_Curtis("Soil","Pre_flowering_drought", 8, 18)
+Bray_Curtis("Leaf","Pre_flowering_drought", 8, 18)
+
+Bray_Curtis("Root","Post_flowering_drought", 9, 18)
+Bray_Curtis("Rhizosphere","Post_flowering_drought", 9, 18)
+Bray_Curtis("Soil","Post_flowering_drought", 9, 18)
+Bray_Curtis("Leaf","Post_flowering_drought", 9, 18)
+
+
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 6, fig.width = 12}
+rm(list=ls())
+library(vegan)
+library(ape)
+library(dplyr)
+library(ggplot2)
+library(plyr)
+library(colorRamps)
+
+
+mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.1/BFT.Bray_Curtis.2022.05.31"
+myfiles = list.files(path=mydir, pattern="*.RDS", full.names=TRUE)
+d0 = ldply(myfiles, readRDS)
+
+d0$Treatment.distance <- factor(d0$Treatment.distance, labels = c('Intra-group','Inter-group','Inter-group' ))
+#d0$Treatment.distance<-recode(d0$Treatment.distance, "c(1, 3) = 'Inter-group';  0 ='Intra-group'")
+d0$Habitat<- factor(d0$Habitat, levels = c( "Root", "Rhizosphere", "Soil", "Leaf"), labels = c( "Root", "Rhizosphere", "Soil", "Leaf") )
+d0$type <- factor( d0$TPA, labels = c("PRE", "Rewetting", "POST"))
+d0$type1 <- factor( d0$TPA, labels = c("Drought period", "Rewetting period", "Drought period"))
+d0$Life <- factor(d0$Life, labels = c("Bacteria", "Fungi"))
+########
+d0$interaction <- interaction (d0$Treatment.distance, d0$Life)
+ggplot(d0[!(d0$Habitat=="Leaf" & d0$Life == "Fungi" & d0$type =="PRE") & d0$type != "POST",], aes(x= factor(TP), y=bc,color=factor(interaction))) + geom_boxplot() + 
+  labs(x="Week",y = "Bray_Curtis dissimilarity")+facet_wrap(~Habitat, ncol=2, scale = "free")+
+  #geom_vline(aes(xintercept=2.5), colour="blue", linetype="dashed")+
+  #geom_vline(aes(xintercept=6.5), colour="blue", linetype="dashed")+
+  scale_color_manual(values=c("pink","red","skyblue", "blue"))+theme_bw()+
+  guides(color=guide_legend(title= "CK v. PRE"),
+         fill=guide_legend(title= "Time"))+theme_bw()+
+  annotate("rect", xmin = 0, xmax = 6.5, ymin = 0, ymax = 1, alpha = .2, fill = "black")+
+  #annotate("text", x = 3, y = 0.95, color = "orange", label = "Drought pierod",fontface =2, size = 5)+
+  annotate("rect", xmin = 6.5, xmax = 16, ymin = 0, ymax = 1, alpha = .2, fill = "gold")+
+  #annotate("text", x = 11, y = 0.95, color = "green", label = "Rewetting pierod",fontface =2, size = 5)+
+  theme(strip.text = element_text(size = 12,face="bold"),
+        panel.spacing = unit(0, "lines"),
+        legend.title = element_text(colour="black", size=12, face="bold"),
+        legend.text = element_text(colour="black", size=12, face="bold"),
+        axis.text.y=element_text(size=12,face="bold"),
+        axis.text.x=element_text(size=12,face="bold",angle = 90),
+        axis.title=element_text(size=12,face="bold"))
+#ggsave("Fig.1.Bray_Curtis.2022.02.16.pdf", width = 12, height = 6)
+
+#v1: navy, brown
+#v2: black, brown
+#v0: brown, green
+#v4: brown, purple
+#v5: brown, gold
+#v6: brown, orange
+#v7: purple, gold
+
+
+
+```
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 6, fig.width = 12}
+##############
+# Resistance##
+##############
+rm(list=ls())
+library(vegan)
+library(vegan)
+library(ape)
+library(colorRamps)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+env.all<-rbind(env.R, env.Z, env.S, env.L)
+bac.all <- rbind (d1.raw, d3.raw, d5.raw, d7.raw)
+fung.all <- rbind(d2.raw, d4.raw, d6.raw, d8.raw)
+
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+
+
+
+#habitat = "Rhizosphere";  treatment <- "Pre_flowering_drought";  tpA <- 2; tpB <- 9
+
+RS<-function(habitat, treatment, tpA, tpB){
+  bac.tmp0 <- bac.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control" ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  fung.tmp0 <- fung.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  env.tmp0 <- env.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  
+  bac.tmp<-bac.tmp0[env.tmp0$TP == (tpB-1),]
+  fung.tmp<-fung.tmp0[env.tmp0$TP == (tpB-1),]
+  env2<-env.tmp0[env.tmp0$TP == (tpB-1),]
+  
+  set.seed(315)
+  bc.fung<-vegdist(decostand(fung.tmp, "hellinger"))
+  td.fung<-dist(env2$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.fung, td.fung))
+  y0F <- dx.tmp[dx.tmp$td.fung == 1,]$bc.fung
+  ylF <- dx.tmp[dx.tmp$td.fung == 0,]$bc.fung
+  
+  RS.F <- NULL
+  for (i in c(1 : length(y0F))) {
+    RS0.F = 1 - ((y0F[i] - median(ylF))  /   (y0F[i] + median(ylF)))
+    RS.F <- rbind(RS0.F, RS.F)
+  }
+  
+  RS.F.d<-data.frame( RS = RS.F, Life = "Fungi", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  
+  set.seed(315)
+  bc.bac<-vegdist(decostand(bac.tmp, "hellinger"))
+  td.bac<-dist(env2$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.bac, td.bac))
+  y0B <- dx.tmp[dx.tmp$td.bac == 1,]$bc.bac
+  ylB <- dx.tmp[dx.tmp$td.bac == 0,]$bc.bac
+  
+  RS.B <- NULL
+  for (i in c(1 : length(y0B))) {
+    RS0.B = 1 - ((y0B[i] - median(ylB))  /   (y0B[i] + median(ylB)))
+    RS.B <- rbind(RS0.B, RS.B)
+  }
+  
+  RS.B.d<-data.frame( RS = RS.B, Life = "bacteria", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  
+  print(mean(RS.B))
+  print(sd(RS.B))
+  print(mean(RS.F))
+  print(sd(RS.F))
+  RS.BF<-rbind(RS.B.d,RS.F.d )
+  tt<-t.test(RS.BF$RS~RS.BF$Life)
+  print(tt)
+  saveRDS(RS.BF, paste0("Fig.1/BFT.Resistance.2022.05.31/Resistance.",habitat,".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  
+}
+
+RS("Root","Pre_flowering_drought", 2, 4)
+RS("Rhizosphere","Pre_flowering_drought", 2, 4)
+RS("Soil","Pre_flowering_drought", 2, 4)
+#RS("Leaf","Pre_flowering_drought", 2, 4)
+
+RS("Root","Pre_flowering_drought", 2, 5)
+RS("Rhizosphere","Pre_flowering_drought", 2, 5)
+RS("Soil","Pre_flowering_drought", 2, 5)
+#RS("Leaf","Pre_flowering_drought", 2, 5)
+
+RS("Root","Pre_flowering_drought", 2, 6)
+RS("Rhizosphere","Pre_flowering_drought", 2, 6)
+RS("Soil","Pre_flowering_drought", 2, 6)
+#RS("Leaf","Pre_flowering_drought", 2, 6)
+
+RS("Root","Pre_flowering_drought", 2, 7)
+RS("Rhizosphere","Pre_flowering_drought", 2, 7)
+RS("Soil","Pre_flowering_drought", 2, 7)
+#RS("Leaf","Pre_flowering_drought", 2, 7)
+
+
+RS("Root","Pre_flowering_drought", 2, 8)
+RS("Rhizosphere","Pre_flowering_drought", 2, 8)
+RS("Soil","Pre_flowering_drought", 2, 8)
+#RS("Leaf","Pre_flowering_drought", 2, 8)
+
+RS("Root","Pre_flowering_drought", 2, 9)
+RS("Rhizosphere","Pre_flowering_drought", 2, 9)
+RS("Soil","Pre_flowering_drought", 2, 9)
+#RS("Leaf","Pre_flowering_drought", 2, 9)
+
+############
+#Resilience#
+############
+
+rm(list=ls())
+library(vegan)
+library(vegan)
+library(ape)
+library(colorRamps)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+env.all<-rbind(env.R, env.Z, env.S, env.L)
+bac.all <- rbind (d1.raw, d3.raw, d5.raw, d7.raw)
+fung.all <- rbind(d2.raw, d4.raw, d6.raw, d8.raw)
+
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+
+#habitat = "Rhizosphere";  treatment <- "Pre_flowering_drought";  tpA <- 8; tpB <- 18
+
+RL<-function(habitat, treatment, tpA, tpB){
+  bac.tmp0 <- bac.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control" ) & env.all$TP > (tpA-1) & env.all$TP < tpB, ]
+  fung.tmp0 <- fung.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > (tpA-1) & env.all$TP < tpB, ]
+  env.tmp0 <- env.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > (tpA-1) & env.all$TP < tpB, ]
+  
+  
+  bac.t0<-bac.tmp0[env.tmp0$TP == (tpA),]
+  fung.t0<-fung.tmp0[env.tmp0$TP == (tpA),]
+  env2.t0<-env.tmp0[env.tmp0$TP == (tpA),]
+  
+  #print(adonis(fung.t0 ~ env2.t0$Treatment1))
+  #print(adonis(bac.t0 ~ env2.t0$Treatment1))
+  
+  bac.tn<-bac.tmp0[env.tmp0$TP == (tpB-1) ,]
+  fung.tn<-fung.tmp0[env.tmp0$TP == (tpB-1),]
+  env2.tn<-env.tmp0[env.tmp0$TP == (tpB-1),]
+  
+  set.seed(315)
+  bc.fung.t0<-vegdist(decostand(fung.t0, "hellinger"))
+  td.fung.t0<-dist(env2.t0$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.fung.t0, td.fung.t0))
+  y0F.t0 <- dx.tmp[dx.tmp$td.fung.t0 == 1,]$bc.fung.t0
+  ylF.t0 <- dx.tmp[dx.tmp$td.fung.t0 == 0,]$bc.fung.t0
+  
+  set.seed(315)
+  bc.fung.tn<-vegdist(decostand(fung.tn, "hellinger"))
+  td.fung.tn<-dist(env2.tn$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.fung.tn, td.fung.tn))
+  y0F.tn <- dx.tmp[dx.tmp$td.fung.tn == 1,]$bc.fung.tn
+  ylF.tn <- dx.tmp[dx.tmp$td.fung.tn == 0,]$bc.fung.tn
+  
+  RL.F <- NULL
+  for (i in c(1 : length(y0F.t0))) {
+    for (k in c(1: length(y0F.tn))) {
+      RL0.F <- (abs(y0F.t0[i] - median(ylF.t0)) - abs(y0F.tn[k] - median(ylF.tn))) / (abs(y0F.t0[i] - median(ylF.t0)) + abs(y0F.tn[k] - median(ylF.tn)))
+      RL.F <- rbind(RL0.F, RL.F)
+    }
+  }
+  
+  RL.F.d<-data.frame( RL = RL.F, Life = "Fungi", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  
+  
+  set.seed(315)
+  bc.bac.t0<-vegdist(decostand(bac.t0, "hellinger"))
+  td.bac.t0<-dist(env2.t0$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.bac.t0, td.bac.t0))
+  y0B.t0 <- dx.tmp[dx.tmp$td.bac.t0 == 1,]$bc.bac.t0
+  ylB.t0 <- dx.tmp[dx.tmp$td.bac.t0 == 0,]$bc.bac.t0
+  
+  set.seed(315)
+  bc.bac.tn<-vegdist(decostand(bac.tn, "hellinger"))
+  td.bac.tn<-dist(env2.tn$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.bac.tn, td.bac.tn))
+  y0B.tn <- dx.tmp[dx.tmp$td.bac.tn == 1,]$bc.bac.tn
+  ylB.tn <- dx.tmp[dx.tmp$td.bac.tn == 0,]$bc.bac.tn
+  
+  RL.B <- NULL
+  for (i in c(1 : length(y0B.t0))) {
+    for (k in c(1: length(y0B.tn))) {
+      RL0.B <- (abs(y0B.t0[i] - median(ylB.t0)) - abs(y0B.tn[k] - median(ylB.tn))) / (abs(y0B.t0[i] - median(ylB.t0)) + abs(y0B.tn[k] - mean(ylB.tn)))
+      RL.B <- rbind(RL0.B, RL.B)
+    }
+  }
+  
+  RL.B.d<-data.frame( RL = RL.B, Life = "bacteria", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  print(mean(RL.B))
+  print(sd(RL.B))
+  print(mean(RL.F))
+  print(sd(RL.F))
+  
+  RL.BF<-rbind(RL.B.d,RL.F.d )
+  
+  tt<-t.test(RL.BF$RL~RL.BF$Life)
+  print(tt)
+  saveRDS(RL.BF, paste0("Fig.1/BFT.Resilience.2022.05.31/Resilience.",habitat,".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  
+}
+
+RL("Root","Pre_flowering_drought", 8, 10)
+RL("Rhizosphere","Pre_flowering_drought", 8, 10)
+#RL("Soil","Pre_flowering_drought", 8, 10)
+#RL("Leaf","Pre_flowering_drought", 8, 10)
+
+RL("Root","Pre_flowering_drought", 8, 11)
+RL("Rhizosphere","Pre_flowering_drought", 8, 11)
+#RL("Soil","Pre_flowering_drought", 8, 11)
+#RL("Leaf","Pre_flowering_drought", 8, 11)
+
+RL("Root","Pre_flowering_drought", 8, 12)
+RL("Rhizosphere","Pre_flowering_drought", 8, 12)
+#RL("Soil","Pre_flowering_drought", 8, 12)
+#RL("Leaf","Pre_flowering_drought", 8, 12)
+
+RL("Root","Pre_flowering_drought", 8, 13)
+RL("Rhizosphere","Pre_flowering_drought", 8, 13)
+#RL("Soil","Pre_flowering_drought", 8, 13)
+#RL("Leaf","Pre_flowering_drought", 8, 13)
+
+RL("Root","Pre_flowering_drought", 8, 14)
+RL("Rhizosphere","Pre_flowering_drought", 8, 14)
+#RL("Soil","Pre_flowering_drought", 8, 14)
+#RL("Leaf","Pre_flowering_drought", 8, 14)
+
+RL("Root","Pre_flowering_drought", 8, 15)
+RL("Rhizosphere","Pre_flowering_drought", 8, 15)
+#RL("Soil","Pre_flowering_drought", 8, 15)
+#RL("Leaf","Pre_flowering_drought", 8, 15)
+
+RL("Root","Pre_flowering_drought", 8, 16)
+RL("Rhizosphere","Pre_flowering_drought", 8, 16)
+#RL("Soil","Pre_flowering_drought", 8, 16)
+#RL("Leaf","Pre_flowering_drought", 8, 16)
+
+RL("Root","Pre_flowering_drought", 8, 17)
+RL("Rhizosphere","Pre_flowering_drought", 8, 17)
+#RL("Soil","Pre_flowering_drought", 8, 17)
+#RL("Leaf","Pre_flowering_drought", 8, 17)
+
+RL("Root","Pre_flowering_drought", 8, 18)
+RL("Rhizosphere","Pre_flowering_drought", 8, 18)
+#RL("Soil","Pre_flowering_drought", 8, 18)
+#RL("Leaf","Pre_flowering_drought", 8, 18)
+
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 6, fig.width = 12}
+
+
+#########
+# Family#
+#########
+
+
+#############
+#Bray-Curtis#
+#############
+
+
+
+rm(list=ls())
+library(vegan)
+#library(SpiecEasi)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+ID.fung <- ID.tmp[ID.tmp$Kingdom == "Eukaryote",]
+
+env.all<-rbind(env.R, env.Z, env.S, env.L)
+bac.all <- rbind (d1.raw, d3.raw, d5.raw, d7.raw)
+fung.all.0 <- rbind(d2.raw, d4.raw, d6.raw, d8.raw)
+
+Flev<-ID.fung[,"Family"] 
+fung.lev<-data.frame(aggregate(t(fung.all.0),by=list(Flev) , sum))
+rownames(fung.lev)<-fung.lev[,1]; fung.lev<-fung.lev[,-1]
+fung.all<-data.frame(t(fung.lev))
+
+
+
+#habitat = "Root";  treatment <- "Pre_flowering_drought";  tpA <- 2; tpB <- 9
+Bray_Curtis.Family<-function(habitat, treatment, tpA, tpB){
+  bac.tmp0 <- bac.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control" ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  fung.tmp0 <- fung.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  env.tmp0 <- env.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  d0.PRE = NULL
+  for (i in c((tpA+1):(tpB-1))){
+    library(ecodist)
+    tmp<-bac.tmp0[env.tmp0$TP== i ,]
+    env2<-env.tmp0[env.tmp0$TP== i ,]
+    bc<-vegdist(decostand(tmp, "hellinger"))
+    Treatment.distance<-distance(env2$Treatment124)
+    da<-data.frame(cbind(bc, Treatment.distance))
+    da$TP<- i
+    da$TPA <- tpA
+    da$type<-treatment
+    da$Life<-"Bacteria"
+    da$Habitat <- habitat
+    d0.PRE<-rbind(d0.PRE,da)
+    
+    tmp<-fung.tmp0[env.tmp0$TP== i ,]
+    env2<-env.tmp0[env.tmp0$TP== i ,]
+    bc<-vegdist(decostand(tmp, "hellinger"))
+    Treatment.distance<-distance(env2$Treatment124)
+    da<-data.frame(cbind(bc, Treatment.distance))
+    da$TP<- i
+    da$TPA <- tpA
+    da$type<-treatment
+    da$Life<-"Fungi"
+    da$Habitat <- habitat
+    d0.PRE<-rbind(d0.PRE,da)
+  }
+  saveRDS(d0.PRE, paste0("Fig.1/BFT.Bray_Curtis.Family.2022.05.31/Bray_Curtis.Family.groups.",habitat,".", treatment,".",tpA,".",tpB,".RDS"))
+}
+
+Bray_Curtis.Family("Root","Pre_flowering_drought", 2, 9)
+Bray_Curtis.Family("Rhizosphere","Pre_flowering_drought", 2, 9)
+Bray_Curtis.Family("Soil","Pre_flowering_drought", 2, 9)
+Bray_Curtis.Family("Leaf","Pre_flowering_drought", 2, 9)
+
+Bray_Curtis.Family("Root","Pre_flowering_drought", 8, 18)
+Bray_Curtis.Family("Rhizosphere","Pre_flowering_drought", 8, 18)
+Bray_Curtis.Family("Soil","Pre_flowering_drought", 8, 18)
+Bray_Curtis.Family("Leaf","Pre_flowering_drought", 8, 18)
+
+Bray_Curtis.Family("Root","Post_flowering_drought", 9, 18)
+Bray_Curtis.Family("Rhizosphere","Post_flowering_drought", 9, 18)
+Bray_Curtis.Family("Soil","Post_flowering_drought", 9, 18)
+Bray_Curtis.Family("Leaf","Post_flowering_drought", 9, 18)
+
+
+```
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 6, fig.width = 12}
+rm(list=ls())
+library(vegan)
+library(ape)
+library(dplyr)
+library(ggplot2)
+library(plyr)
+library(colorRamps)
+
+
+mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.1/BFT.Bray_Curtis.Family.2022.05.31"
+myfiles = list.files(path=mydir, pattern="*.RDS", full.names=TRUE)
+d0 = ldply(myfiles, readRDS)
+
+d0$Treatment.distance <- factor(d0$Treatment.distance, labels = c('Intra-group','Inter-group','Inter-group' ))
+#d0$Treatment.distance<-recode(d0$Treatment.distance, "c(1, 3) = 'Inter-group';  0 ='Intra-group'")
+d0$Habitat<- factor(d0$Habitat, levels = c( "Root", "Rhizosphere", "Soil", "Leaf"), labels = c( "Root", "Rhizosphere", "Soil", "Leaf") )
+d0$type <- factor( d0$TPA, labels = c("PRE", "Rewetting", "POST"))
+d0$type1 <- factor( d0$TPA, labels = c("Drought period", "Rewetting period", "Drought period"))
+d0$Life <- factor(d0$Life, labels = c("Bacteria", "Fungi"))
+########
+d0$interaction <- interaction (d0$Treatment.distance, d0$Life)
+ggplot(d0[!(d0$Habitat=="Leaf" & d0$Life == "Fungi" & d0$type =="PRE") & d0$type != "POST",], aes(x= factor(TP), y=bc,color=factor(interaction))) + geom_boxplot() + 
+  labs(x="Week",y = "Bray_Curtis.Family dissimilarity")+facet_wrap(~Habitat, ncol=2, scale = "free")+
+  #geom_vline(aes(xintercept=2.5), colour="blue", linetype="dashed")+
+  #geom_vline(aes(xintercept=6.5), colour="blue", linetype="dashed")+
+  scale_color_manual(values=c("pink","red","skyblue", "blue"))+theme_bw()+
+  guides(color=guide_legend(title= "CK v. PRE"),
+         fill=guide_legend(title= "Time"))+theme_bw()+
+  annotate("rect", xmin = 0, xmax = 6.5, ymin = 0, ymax = 1, alpha = .1, fill = "orange")+
+  #annotate("text", x = 3, y = 0.95, color = "orange", label = "Drought pierod",fontface =2, size = 5)+
+  annotate("rect", xmin = 6.5, xmax = 16, ymin = 0, ymax = 1, alpha = .1, fill = "green")+
+  #annotate("text", x = 11, y = 0.95, color = "green", label = "Rewetting pierod",fontface =2, size = 5)+
+  theme(strip.text = element_text(size = 12,face="bold"),
+        panel.spacing = unit(0, "lines"),
+        legend.title = element_text(colour="black", size=12, face="bold"),
+        legend.text = element_text(colour="black", size=12, face="bold"),
+        axis.text.y=element_text(size=12,face="bold"),
+        axis.text.x=element_text(size=12,face="bold",angle = 90),
+        axis.title=element_text(size=12,face="bold"))
+#ggsave("Fig.1.Bray_Curtis.Family.2021.08.13.v2.pdf", width = 12, height = 6)
+
+
+
+```
+
+
+```{r}
+##############
+# Resistance##
+##############
+rm(list=ls())
+library(vegan)
+library(vegan)
+library(ape)
+library(colorRamps)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+ID.fung <- ID.tmp[ID.tmp$Kingdom == "Eukaryote",]
+
+env.all<-rbind(env.R, env.Z, env.S, env.L)
+bac.all <- rbind (d1.raw, d3.raw, d5.raw, d7.raw)
+fung.all.0 <- rbind(d2.raw, d4.raw, d6.raw, d8.raw)
+
+Flev<-ID.fung[,"Family"] 
+fung.lev<-data.frame(aggregate(t(fung.all.0),by=list(Flev) , sum))
+rownames(fung.lev)<-fung.lev[,1]; fung.lev<-fung.lev[,-1]
+fung.all<-data.frame(t(fung.lev))
+
+
+
+#habitat = "Rhizosphere";  treatment <- "Pre_flowering_drought";  tpA <- 2; tpB <- 9
+
+RS<-function(habitat, treatment, tpA, tpB){
+  bac.tmp0 <- bac.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control" ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  fung.tmp0 <- fung.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  env.tmp0 <- env.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > tpA & env.all$TP < tpB, ]
+  
+  bac.tmp<-bac.tmp0[env.tmp0$TP == (tpB-1),]
+  fung.tmp<-fung.tmp0[env.tmp0$TP == (tpB-1),]
+  env2<-env.tmp0[env.tmp0$TP == (tpB-1),]
+  
+  set.seed(315)
+  bc.fung<-vegdist(decostand(fung.tmp, "hellinger"))
+  td.fung<-dist(env2$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.fung, td.fung))
+  y0F <- dx.tmp[dx.tmp$td.fung == 1,]$bc.fung
+  ylF <- dx.tmp[dx.tmp$td.fung == 0,]$bc.fung
+  
+  RS.F <- NULL
+  for (i in c(1 : length(y0F))) {
+    RS0.F = 1 - ((y0F[i] - median(ylF))  /   (y0F[i] + median(ylF)))
+    RS.F <- rbind(RS0.F, RS.F)
+  }
+  
+  RS.F.d<-data.frame( RS = RS.F, Life = "Fungi", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  
+  set.seed(315)
+  bc.bac<-vegdist(decostand(bac.tmp, "hellinger"))
+  td.bac<-dist(env2$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.bac, td.bac))
+  y0B <- dx.tmp[dx.tmp$td.bac == 1,]$bc.bac
+  ylB <- dx.tmp[dx.tmp$td.bac == 0,]$bc.bac
+  
+  RS.B <- NULL
+  for (i in c(1 : length(y0B))) {
+    RS0.B = 1 - ((y0B[i] - median(ylB))  /   (y0B[i] + median(ylB)))
+    RS.B <- rbind(RS0.B, RS.B)
+  }
+  
+  RS.B.d<-data.frame( RS = RS.B, Life = "bacteria", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  
+  print(mean(RS.B))
+  print(sd(RS.B))
+  print(mean(RS.F))
+  print(sd(RS.F))
+  RS.BF<-rbind(RS.B.d,RS.F.d )
+  tt<-t.test(RS.BF$RS~RS.BF$Life)
+  print(tt)
+  saveRDS(RS.BF, paste0("Fig.1/BFT.Resistance.2022.05.31/Resistance.Family.",habitat,".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  
+}
+
+RS("Root","Pre_flowering_drought", 2, 4)
+RS("Rhizosphere","Pre_flowering_drought", 2, 4)
+RS("Soil","Pre_flowering_drought", 2, 4)
+#RS("Leaf","Pre_flowering_drought", 2, 4)
+
+RS("Root","Pre_flowering_drought", 2, 5)
+RS("Rhizosphere","Pre_flowering_drought", 2, 5)
+RS("Soil","Pre_flowering_drought", 2, 5)
+#RS("Leaf","Pre_flowering_drought", 2, 5)
+
+RS("Root","Pre_flowering_drought", 2, 6)
+RS("Rhizosphere","Pre_flowering_drought", 2, 6)
+RS("Soil","Pre_flowering_drought", 2, 6)
+#RS("Leaf","Pre_flowering_drought", 2, 6)
+
+RS("Root","Pre_flowering_drought", 2, 7)
+RS("Rhizosphere","Pre_flowering_drought", 2, 7)
+RS("Soil","Pre_flowering_drought", 2, 7)
+#RS("Leaf","Pre_flowering_drought", 2, 7)
+
+
+RS("Root","Pre_flowering_drought", 2, 8)
+RS("Rhizosphere","Pre_flowering_drought", 2, 8)
+RS("Soil","Pre_flowering_drought", 2, 8)
+#RS("Leaf","Pre_flowering_drought", 2, 8)
+
+RS("Root","Pre_flowering_drought", 2, 9)
+RS("Rhizosphere","Pre_flowering_drought", 2, 9)
+RS("Soil","Pre_flowering_drought", 2, 9)
+#RS("Leaf","Pre_flowering_drought", 2, 9)
+
+############
+#Resilience#
+############
+
+rm(list=ls())
+library(vegan)
+library(vegan)
+library(ape)
+library(colorRamps)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+ID.fung <- ID.tmp[ID.tmp$Kingdom == "Eukaryote",]
+
+env.all<-rbind(env.R, env.Z, env.S, env.L)
+bac.all <- rbind (d1.raw, d3.raw, d5.raw, d7.raw)
+fung.all.0 <- rbind(d2.raw, d4.raw, d6.raw, d8.raw)
+
+Flev<-ID.fung[,"Family"] 
+fung.lev<-data.frame(aggregate(t(fung.all.0),by=list(Flev) , sum))
+rownames(fung.lev)<-fung.lev[,1]; fung.lev<-fung.lev[,-1]
+fung.all<-data.frame(t(fung.lev))
+
+#habitat = "Rhizosphere";  treatment <- "Pre_flowering_drought";  tpA <- 8; tpB <- 18
+
+RL<-function(habitat, treatment, tpA, tpB){
+  bac.tmp0 <- bac.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control" ) & env.all$TP > (tpA-1) & env.all$TP < tpB, ]
+  fung.tmp0 <- fung.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > (tpA-1) & env.all$TP < tpB, ]
+  env.tmp0 <- env.all[env.all$Habitat==habitat & (env.all$Treatment1 == treatment |env.all$Treatment1 == "Control"  ) & env.all$TP > (tpA-1) & env.all$TP < tpB, ]
+  
+  
+  bac.t0<-bac.tmp0[env.tmp0$TP == (tpA),]
+  fung.t0<-fung.tmp0[env.tmp0$TP == (tpA),]
+  env2.t0<-env.tmp0[env.tmp0$TP == (tpA),]
+  
+  #print(adonis(fung.t0 ~ env2.t0$Treatment1))
+  #print(adonis(bac.t0 ~ env2.t0$Treatment1))
+  
+  bac.tn<-bac.tmp0[env.tmp0$TP == (tpB-1) ,]
+  fung.tn<-fung.tmp0[env.tmp0$TP == (tpB-1),]
+  env2.tn<-env.tmp0[env.tmp0$TP == (tpB-1),]
+  
+  set.seed(315)
+  bc.fung.t0<-vegdist(decostand(fung.t0, "hellinger"))
+  td.fung.t0<-dist(env2.t0$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.fung.t0, td.fung.t0))
+  y0F.t0 <- dx.tmp[dx.tmp$td.fung.t0 == 1,]$bc.fung.t0
+  ylF.t0 <- dx.tmp[dx.tmp$td.fung.t0 == 0,]$bc.fung.t0
+  
+  set.seed(315)
+  bc.fung.tn<-vegdist(decostand(fung.tn, "hellinger"))
+  td.fung.tn<-dist(env2.tn$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.fung.tn, td.fung.tn))
+  y0F.tn <- dx.tmp[dx.tmp$td.fung.tn == 1,]$bc.fung.tn
+  ylF.tn <- dx.tmp[dx.tmp$td.fung.tn == 0,]$bc.fung.tn
+  
+  RL.F <- NULL
+  for (i in c(1 : length(y0F.t0))) {
+    for (k in c(1: length(y0F.tn))) {
+      RL0.F <-  (abs(y0F.t0[i] - median(ylF.t0)) - abs(y0F.tn[k] - median(ylF.tn))) / (abs(y0F.t0[i] - median(ylF.t0)) + abs(y0F.tn[k] - median(ylF.tn)))
+      RL.F <- rbind(RL0.F, RL.F)
+    }
+  }
+  
+  RL.F.d<-data.frame( RL = RL.F, Life = "Fungi", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  
+  
+  set.seed(315)
+  bc.bac.t0<-vegdist(decostand(bac.t0, "hellinger"))
+  td.bac.t0<-dist(env2.t0$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.bac.t0, td.bac.t0))
+  y0B.t0 <- dx.tmp[dx.tmp$td.bac.t0 == 1,]$bc.bac.t0
+  ylB.t0 <- dx.tmp[dx.tmp$td.bac.t0 == 0,]$bc.bac.t0
+  
+  set.seed(315)
+  bc.bac.tn<-vegdist(decostand(bac.tn, "hellinger"))
+  td.bac.tn<-dist(env2.tn$Treatment124)
+  dx.tmp<-data.frame(cbind(bc.bac.tn, td.bac.tn))
+  y0B.tn <- dx.tmp[dx.tmp$td.bac.tn == 1,]$bc.bac.tn
+  ylB.tn <- dx.tmp[dx.tmp$td.bac.tn == 0,]$bc.bac.tn
+  
+  RL.B <- NULL
+  for (i in c(1 : length(y0B.t0))) {
+    for (k in c(1: length(y0B.tn))) {
+      RL0.B <- (abs(y0B.t0[i] - median(ylB.t0)) - abs(y0B.tn[k] - median(ylB.tn))) / (abs(y0B.t0[i] - median(ylB.t0)) + abs(y0B.tn[k] - mean(ylB.tn)))
+      RL.B <- rbind(RL0.B, RL.B)
+    }
+  }
+  
+  RL.B.d<-data.frame( RL = RL.B, Life = "bacteria", Habitat=habitat, Treatment = treatment, TPA = tpA)
+  print(mean(RL.B))
+  print(sd(RL.B))
+  print(mean(RL.F))
+  print(sd(RL.F))
+  
+  RL.BF<-rbind(RL.B.d,RL.F.d )
+  
+  tt<-t.test(RL.BF$RL~RL.BF$Life)
+  print(tt)
+  saveRDS(RL.BF, paste0("Fig.1/BFT.Resilience.2022.05.31/Resilience.Family.",habitat,".", treatment,".",tpA,".",tpB,".RDS"))
+  
+  
+}
+
+RL("Root","Pre_flowering_drought", 8, 10)
+RL("Rhizosphere","Pre_flowering_drought", 8, 10)
+#RL("Soil","Pre_flowering_drought", 8, 10)
+#RL("Leaf","Pre_flowering_drought", 8, 10)
+
+RL("Root","Pre_flowering_drought", 8, 11)
+RL("Rhizosphere","Pre_flowering_drought", 8, 11)
+#RL("Soil","Pre_flowering_drought", 8, 11)
+#RL("Leaf","Pre_flowering_drought", 8, 11)
+
+RL("Root","Pre_flowering_drought", 8, 12)
+RL("Rhizosphere","Pre_flowering_drought", 8, 12)
+#RL("Soil","Pre_flowering_drought", 8, 12)
+#RL("Leaf","Pre_flowering_drought", 8, 12)
+
+RL("Root","Pre_flowering_drought", 8, 13)
+RL("Rhizosphere","Pre_flowering_drought", 8, 13)
+#RL("Soil","Pre_flowering_drought", 8, 13)
+#RL("Leaf","Pre_flowering_drought", 8, 13)
+
+RL("Root","Pre_flowering_drought", 8, 14)
+RL("Rhizosphere","Pre_flowering_drought", 8, 14)
+#RL("Soil","Pre_flowering_drought", 8, 14)
+#RL("Leaf","Pre_flowering_drought", 8, 14)
+
+RL("Root","Pre_flowering_drought", 8, 15)
+RL("Rhizosphere","Pre_flowering_drought", 8, 15)
+#RL("Soil","Pre_flowering_drought", 8, 15)
+#RL("Leaf","Pre_flowering_drought", 8, 15)
+
+RL("Root","Pre_flowering_drought", 8, 16)
+RL("Rhizosphere","Pre_flowering_drought", 8, 16)
+#RL("Soil","Pre_flowering_drought", 8, 16)
+#RL("Leaf","Pre_flowering_drought", 8, 16)
+
+RL("Root","Pre_flowering_drought", 8, 17)
+RL("Rhizosphere","Pre_flowering_drought", 8, 17)
+#RL("Soil","Pre_flowering_drought", 8, 17)
+#RL("Leaf","Pre_flowering_drought", 8, 17)
+
+RL("Root","Pre_flowering_drought", 8, 18)
+RL("Rhizosphere","Pre_flowering_drought", 8, 18)
+#RL("Soil","Pre_flowering_drought", 8, 18)
+#RL("Leaf","Pre_flowering_drought", 8, 18)
+
+
+
+
+```
+
