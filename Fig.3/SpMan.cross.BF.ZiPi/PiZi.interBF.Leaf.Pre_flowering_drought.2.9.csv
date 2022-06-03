@@ -1,0 +1,5 @@
+"","Pi","Zi","group","otu.name","Kingdom","Kingdom1","Phylum","Class","Order","Family","Genus","Funguild","OTU.ID","Morph","Morph1","Habitat","Treatment","tpA","tpB","network"
+"Bac116",0,NA,NA,"Bac116","Prokaryote","Bacteria","Proteobacteria","Alphaproteobacteria","Sphingomonadales","_","_","_","Bac116","Non-Actinobacteria","Non-Actinobacteria","Leaf","Pre_flowering_drought",2,9,"interBF"
+"Bac573",0,NA,NA,"Bac573","Prokaryote","Bacteria","Chloroflexi","Thermomicrobia","ThermomicrobiaCL","ThermomicrobiaCL","ThermomicrobiaCL","_","Bac573","Non-Actinobacteria","Non-Actinobacteria","Leaf","Pre_flowering_drought",2,9,"interBF"
+"OTU34Stachybotrys",0,NA,NA,"OTU34Stachybotrys","Eukaryote","Fungi","Ascomycota","Sordariomycetes","Hypocreales","Stachybotriaceae","Achroiostachys","Saprotroph","OTU34Stachybotrys","Non-Yeast","Saprotroph","Leaf","Pre_flowering_drought",2,9,"interBF"
+"OTU81Schizothecium",0,NA,NA,"OTU81Schizothecium","Eukaryote","Fungi","Ascomycota","Sordariomycetes","Sordariales","Lasiosphaeriaceae","Schizothecium","Saprotroph","OTU81Schizothecium","Non-Yeast","Saprotroph","Leaf","Pre_flowering_drought",2,9,"interBF"

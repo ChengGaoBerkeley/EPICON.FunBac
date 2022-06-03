@@ -1,0 +1,6 @@
+"","Pi","Zi","group","otu.name","Kingdom","Kingdom1","Phylum","Class","Order","Family","Genus","Funguild","OTU.ID","Morph","Morph1","Habitat","Treatment","tpA","tpB","network"
+"Bac25",0,-0.577350269189626,"Peripherals","Bac25","Prokaryote","Bacteria","Actinobacteria","ActinobacteriaPH","Actinomycetales","Nocardioidaceae","Kribbella","_","Bac25","Actinobacteria","Actinobacteria","Leaf","Control",2,9,"interBF"
+"Bac289",0,-0.577350269189626,"Peripherals","Bac289","Prokaryote","Bacteria","Actinobacteria","ActinobacteriaPH","Solirubrobacterales","Solirubrobacteraceae","SolirubrobacteraceaeFA","_","Bac289","Actinobacteria","Actinobacteria","Leaf","Control",2,9,"interBF"
+"Bac968",0,NA,NA,"Bac968","Prokaryote","Bacteria","Proteobacteria","Alphaproteobacteria","_","_","_","_","Bac968","Non-Actinobacteria","Non-Actinobacteria","Leaf","Control",2,9,"interBF"
+"OTU23Stachybotrys",0,1.15470053837925,"Peripherals","OTU23Stachybotrys","Eukaryote","Fungi","Ascomycota","Sordariomycetes","Hypocreales","_","Stachybotrys","Saprotroph","OTU23Stachybotrys","Non-Yeast","Saprotroph","Leaf","Control",2,9,"interBF"
+"OTU289Coprinellus",0,NA,NA,"OTU289Coprinellus","Eukaryote","Fungi","Basidiomycota","Agaricomycetes","Agaricales","Psathyrellaceae","Coprinellus","Saprotroph","OTU289Coprinellus","Non-Yeast","Saprotroph","Leaf","Control",2,9,"interBF"
