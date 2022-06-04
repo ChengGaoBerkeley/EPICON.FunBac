@@ -11,14 +11,11 @@ setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
 library(tidyverse) 
 mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.3/SpMan.network.property.2022.05.31"
 da0 <- data.frame(list.files(path=mydir, full.names=TRUE) %>% map_dfr(readRDS))
-
 da1 <- da0[ !c(da0$habitat == "Leaf" & da0$network %in% c("BF","FF","BF-FF-BB") & da0$tpA == 2),]
-
 da <- da1[da1$network!="BF-FF-BB",]
 da$Treatment2<-factor(da$treatment, labels = c(1,2))
 da$tpA <- factor(da$tpA, labels = c("Drought period", "Rewetting period"))
 da$habitat <-factor(da$habitat, levels = c("Root", "Rhizosphere", "Soil", "Leaf"))
-
 
 ggplot(da, aes(x= as.numeric(Treatment2),y= log(num.edges+1), color  = network )) + 
   geom_smooth(method='lm', size =1, se = FALSE)+
@@ -36,8 +33,6 @@ ggplot(da, aes(x= as.numeric(Treatment2),y= log(num.edges+1), color  = network )
         axis.text.x=element_text(colour="black",size=8,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=8 ,face="bold"))
-#ggsave("2022.06.01.SpMan.BFT.bac.fung.num.edges.CK.Stress.pdf", width = 4, height = 6)
-
 
 ggplot(da, aes(x= as.numeric(Treatment2),y= log(num.vertices+1), color  = network )) + 
   geom_smooth(method='lm', size =1, se = FALSE)+
@@ -55,9 +50,6 @@ ggplot(da, aes(x= as.numeric(Treatment2),y= log(num.vertices+1), color  = networ
         axis.text.x=element_text(colour="black",size=8,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=8 ,face="bold"))#
-#ggsave("2022.06.01.SpMan.BFT.bac.fung.num.vertices.CK.Stress.pdf", width = 4, height = 6)
 
-#
-#
 ```
 

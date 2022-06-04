@@ -1,0 +1,130 @@
+---
+title: "Untitled"
+output: html_document
+date: '2022-06-04'
+---
+
+
+
+```{r, message=FALSE, warning=FALSE, fig.height = 4, fig.width = 6}
+rm(list=ls())
+library(vegan)#
+library(plyr) 
+library(tidyverse) 
+library(igraph)
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+
+dispersal.limitation<-function(habitat, treatment, tpA, tpB) {
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom", "Kingdom1", "Phylum",   "Class",    "Order",    "Family",   "Genus",    "Funguild", "OTU.ID",   "Morph",    "Morph1")]
+  SigCor.tmp0<-readRDS(paste0("BFT.",type,".sig.df.2021.08.16/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  env.tmp0 <- readRDS(paste0("BFT.SpMan.df.2021.08.16/data.env.", habitat, "." ,treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  bac.tmp0 <- readRDS(paste0("BFT.SpMan.df.2021.08.16/data.bac.", habitat, "." ,treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  fung.tmp0 <- readRDS(paste0("BFT.SpMan.df.2021.08.16/data.fung.", habitat, "." ,treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  bacfung.tmp0 <- cbind (bac.tmp0 , fung.tmp0)
+  n <-length(SigCor.tmp0$row)
+  SigCor.tmp0$ab.mantel.R <- NA
+  SigCor.tmp0$ag.mantel.R <- NA
+  SigCor.tmp0$bg.mantel.R <- NA
+  SigCor.tmp0$ab.mantel.P <- NA
+  SigCor.tmp0$ag.mantel.P <- NA
+  SigCor.tmp0$bg.mantel.P <- NA
+  SigCor.tmp0$dispersallimitation <- NA
+  m = 0
+  h = 0
+  start_time <- Sys.time()
+  for (i in c(1:n)) {
+    g <- ecodist::distance(cbind(env.tmp0$X, env.tmp0$Y))
+    a <- dist(bacfung.tmp0[,as.character(SigCor.tmp0$row[i])])
+    b <- dist(bacfung.tmp0[,as.character(SigCor.tmp0$col[i])])
+    
+    SigCor.tmp0$ab.mantel.R[i] <- mab.r <- mantel(a,b)$statistic
+    SigCor.tmp0$ag.mantel.R[i] <- mag.r <- mantel(a,g)$statistic 
+    SigCor.tmp0$bg.mantel.R[i] <- mbg.r <- mantel(b,g)$statistic
+    SigCor.tmp0$ab.mantel.P[i] <- mab.p <- mantel(a,b)$signif
+    SigCor.tmp0$ag.mantel.P[i] <- mag.p <- mantel(a,g)$signif 
+    SigCor.tmp0$bg.mantel.P[i] <- mbg.p <- mantel(b,g)$signif
+    SigCor.tmp0$dispersallimitation <- j <- (mag.r > mab.r & mbg.r > mab.r & mag.p < 0.01 & mbg.p < 0.01 & mab.p < 0.01) 
+    SigCor.tmp0$dispersallimitation <- k <- (mag.r > mab.r & mbg.r > mab.r ) 
+    
+    m <- m + j
+    h <- h + k
+  }
+  
+  
+  dl.sum<-data.frame(habitat, treatment, tpA, tpB, m, h, n)
+  saveRDS(dl.sum, paste0("Spearman.BacFun.network.dispersal.limitation.2021.09.07/Spearman.net.disper.limit.", habitat, "." ,treatment,".",tpA,".",tpB,".RDS"))
+  
+  colnames(dl.sum) <- c()
+  print(m)
+  print(h)
+  print(n)
+  
+  library(beepr)
+  beep()
+  
+  end_time <- Sys.time()
+  end_time - start_time
+  
+  
+}
+
+#dispersal.limitation("Root","Control", 2, 9)
+#dispersal.limitation("Root","Pre_flowering_drought", 2, 9)
+#dispersal.limitation("Root","Control", 8, 18)
+#dispersal.limitation("Root","Pre_flowering_drought", 8, 18)
+#dispersal.limitation("Root","Control", 9, 18)
+#dispersal.limitation("Root","Post_flowering_drought", 9, 18)
+
+#dispersal.limitation("Rhizosphere","Control", 2, 9)
+#dispersal.limitation("Rhizosphere","Pre_flowering_drought", 2, 9)
+#dispersal.limitation("Rhizosphere","Control", 8, 18)
+#dispersal.limitation("Rhizosphere","Pre_flowering_drought", 8, 18)
+#dispersal.limitation("Rhizosphere","Control", 9, 18)
+#dispersal.limitation("Rhizosphere","Post_flowering_drought", 9, 18)
+
+
+#dispersal.limitation("Soil","Control", 2, 9)
+#dispersal.limitation("Soil","Pre_flowering_drought", 2, 9)
+#dispersal.limitation("Soil","Control", 8, 18)
+#dispersal.limitation("Soil","Pre_flowering_drought", 8, 18)
+#dispersal.limitation("Soil","Control", 9, 18)
+#dispersal.limitation("Soil","Post_flowering_drought", 9, 18)
+
+#dispersal.limitation("Leaf","Control", 2, 9)
+#dispersal.limitation("Leaf","Pre_flowering_drought", 2, 9)
+#dispersal.limitation("Leaf","Control", 8, 18)
+#dispersal.limitation("Leaf","Pre_flowering_drought", 8, 18)
+#dispersal.limitation("Leaf","Control", 9, 18)
+#dispersal.limitation("Leaf","Post_flowering_drought", 9, 18)
+library(beepr)
+beep()
+
+mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.3/Spearman.BacFun.network.dispersal.limitation.2022.05.31"
+myfiles = list.files(path=mydir, pattern="*.RDS", full.names=TRUE)
+gd = ldply(myfiles, readRDS)
+gd$pct <- gd$h/gd$n
+
+gd$tpA <- factor(gd$tpA, labels = c("Drought period", "Rewetting period"))
+gd$Treatment<-factor(gd$treatment, labels = c("Control", "Drought" ))
+gd$habitat <-factor(gd$habitat, levels = c("Root", "Rhizosphere", "Soil", "Leaf"))
+gd$Treatment3 <- interaction(gd$tpA, gd$Treatment)
+gd$Treatment3 <- factor(gd$Treatment3, labels = c("Control", "Control", "Drought", "Rewetting"))
+gd$pct1 <- round((gd$pct * 100),2)
+
+ggplot(gd, aes(x = Treatment3, y = pct, color= Treatment3, label = pct1)) +
+  geom_point()+   geom_text(hjust = 0, nudge_x = 0.05,nudge_y = 0.05, fontface = "bold")+
+  facet_grid(habitat~tpA, scale="free_x")+theme_bw()+xlab("")+ylab("Taxon-Taxon-Space Association (% network links)")+
+  scale_color_manual(values = c("black", "blue", "red"))+
+  theme(strip.text = element_text(size = 10,face="bold"),
+        panel.spacing = unit(0, "lines"),
+        legend.title = element_text(colour="black", size=10, face="bold"),
+        legend.text = element_text(colour="black", size=10, face="bold"),
+        axis.text.y=element_text(size=10,face="bold"),
+        axis.text.x=element_text(size=10,face="bold",angle = 0),
+        axis.title=element_text(size=10,face="bold"))+
+  scale_y_continuous(labels = scales::percent, limits = c(0,1))
+
+```
+

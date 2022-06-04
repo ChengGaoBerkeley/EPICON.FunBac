@@ -1,0 +1,389 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r, message=FALSE, warning=FALSE, fig.height = 9, fig.width = 9}
+rm(list=ls())
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+library(vegan)
+library(psych)##
+library(igraph)
+library(compositions)
+library(zCompositions)
+source("CoDaSeq-master/chunk/codaSeq_functions.R") # commonly used functions
+source("propr-functions.R")
+
+load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+habitat <- "Root"; treatment <- "Control"; tpA <- 2; tpB <- 9
+fq <- 7; abu <- 19; 
+CoDa<-function(fq, abu, treatment, tpA, tpB){
+  
+  d1 <- d1.raw [env.R$Treatment1==treatment & env.R$TP > tpA & env.R$TP < tpB , ]
+  d1 <- d1 [,specnumber(t(d1)) > fq & colSums(d1)> abu]
+  d2 <- d2.raw [env.R$Treatment1==treatment & env.R$TP > tpA & env.R$TP < tpB, ]
+  d2 <- d2[, specnumber(t(d2)) > fq & colSums(d2)> abu]
+  env.R.tmp0 <- env.R [env.R$Treatment1==treatment & env.R$TP > tpA & env.R$TP < tpB , ]
+  
+  d3 <- d3.raw [env.Z$Treatment1==treatment & env.Z$TP > tpA & env.Z$TP < tpB , ]
+  d3 <- d3 [,specnumber(t(d3)) > fq & colSums(d3)> abu]
+  d4 <- d4.raw [env.Z$Treatment1==treatment & env.Z$TP > tpA & env.Z$TP < tpB , ]
+  d4 <- d4 [,specnumber(t(d4)) > fq & colSums(d4)> abu]
+  env.Z.tmp0 <- env.Z [env.Z$Treatment1==treatment & env.Z$TP > tpA & env.Z$TP < tpB , ]
+  
+  d5 <- d5.raw [env.S$Treatment1==treatment & env.S$TP > tpA & env.S$TP < tpB, ]
+  d5 <- d5[, specnumber(t(d5)) > fq & colSums(d5)> abu]
+  d6 <- d6.raw [env.S$Treatment1==treatment & env.S$TP > tpA & env.S$TP < tpB , ]
+  d6 <- d6 [,specnumber(t(d6)) > fq & colSums(d6)> abu]
+  env.S.tmp0 <- env.S [env.S$Treatment1==treatment & env.S$TP > tpA & env.S$TP < tpB , ]
+  
+  d7 <- d7.raw [env.L$Treatment1==treatment & env.L$TP > tpA & env.L$TP < tpB , ]
+  d7 <- d7[,specnumber(t(d7)) > fq & colSums(d7)> abu]
+  d8 <- d8.raw [env.L$Treatment1==treatment & env.L$TP > tpA & env.L$TP < tpB, ]
+  d8 <- d8[, specnumber(t(d8)) > fq & colSums(d8)> abu]
+  env.L.tmp0 <- env.L [env.L$Treatment1==treatment & env.L$TP > tpA & env.L$TP < tpB , ]
+  
+  saveRDS(env.L.tmp0, paste0("BFT.CoDa.df.2021.08.16/data.env.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(env.S.tmp0, paste0("BFT.CoDa.df.2021.08.16/data.env.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(env.Z.tmp0, paste0("BFT.CoDa.df.2021.08.16/data.env.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(env.R.tmp0, paste0("BFT.CoDa.df.2021.08.16/data.env.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d1, paste0("BFT.CoDa.df.2021.08.16/data.bac.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d2, paste0("BFT.CoDa.df.2021.08.16/data.fung.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d3, paste0("BFT.CoDa.df.2021.08.16/data.bac.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d4, paste0("BFT.CoDa.df.2021.08.16/data.fung.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d5, paste0("BFT.CoDa.df.2021.08.16/data.bac.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d6, paste0("BFT.CoDa.df.2021.08.16/data.fung.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  saveRDS(d7, paste0("BFT.CoDa.df.2021.08.16/data.bac.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  saveRDS(d8, paste0("BFT.CoDa.df.2021.08.16/data.fung.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  d12<-cbind(d1,d2)
+  d.n0 <- cmultRepl(d12, label=0, method="GBM", output="p-counts")
+  d.n0.clr <- data.frame(codaSeq.clr(d.n0, samples.by.row=TRUE))
+  d.n0.sym.phi <- propr.phisym(d.n0.clr)
+  d.n0.sma <- sma.df(d.n0.clr)
+  lt <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=FALSE)
+  lt.ind <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=TRUE)
+  d.n0.phi.min <- lt.row.min(d.n0.sym.phi)
+  d.n0.sma.df <- data.frame(row=factor(rownames(d.n0.sma$b)[lt.ind[,"row"]]), col=factor(colnames(d.n0.sma$b)[lt.ind[,"col"]]))
+  d.n0.sma.df$b <- d.n0.sma$b[lt]
+  d.n0.sma.df$p <- d.n0.sma$p[lt]
+  d.n0.sma.df$r2 <- d.n0.sma$r2[lt]
+  d.n0.sma.df$phi <- d.n0.sym.phi[lt]
+  CoDa.d12 <- d.n0.sma.df
+  saveRDS(CoDa.d12, paste0("BFT.CoDa.df.2021.08.16/CoDa.crossBF.Root.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  d34<-cbind(d3,d4)
+  d.n0 <- cmultRepl(d34, label=0, method="GBM", output="p-counts")
+  d.n0.clr <- data.frame(codaSeq.clr(d.n0, samples.by.row=TRUE))
+  d.n0.sym.phi <- propr.phisym(d.n0.clr)
+  d.n0.sma <- sma.df(d.n0.clr)
+  lt <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=FALSE)
+  lt.ind <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=TRUE)
+  d.n0.phi.min <- lt.row.min(d.n0.sym.phi)
+  d.n0.sma.df <- data.frame(row=factor(rownames(d.n0.sma$b)[lt.ind[,"row"]]), col=factor(colnames(d.n0.sma$b)[lt.ind[,"col"]]))
+  d.n0.sma.df$b <- d.n0.sma$b[lt]
+  d.n0.sma.df$p <- d.n0.sma$p[lt]
+  d.n0.sma.df$r2 <- d.n0.sma$r2[lt]
+  d.n0.sma.df$phi <- d.n0.sym.phi[lt]
+  CoDa.d34 <- d.n0.sma.df
+  saveRDS(CoDa.d34, paste0("BFT.CoDa.df.2021.08.16/CoDa.crossBF.Rhizosphere.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  d56<-cbind(d5,d6)
+  d.n0 <- cmultRepl(d56, label=0, method="GBM", output="p-counts")
+  d.n0.clr <- data.frame(codaSeq.clr(d.n0, samples.by.row=TRUE))
+  d.n0.sym.phi <- propr.phisym(d.n0.clr)
+  d.n0.sma <- sma.df(d.n0.clr)
+  lt <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=FALSE)
+  lt.ind <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=TRUE)
+  d.n0.phi.min <- lt.row.min(d.n0.sym.phi)
+  d.n0.sma.df <- data.frame(row=factor(rownames(d.n0.sma$b)[lt.ind[,"row"]]), col=factor(colnames(d.n0.sma$b)[lt.ind[,"col"]]))
+  d.n0.sma.df$b <- d.n0.sma$b[lt]
+  d.n0.sma.df$p <- d.n0.sma$p[lt]
+  d.n0.sma.df$r2 <- d.n0.sma$r2[lt]
+  d.n0.sma.df$phi <- d.n0.sym.phi[lt]
+  CoDa.d56 <- d.n0.sma.df
+  saveRDS(CoDa.d56, paste0("BFT.CoDa.df.2021.08.16/CoDa.crossBF.Soil.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  d78<-cbind(d7,d8)
+  d.n0 <- cmultRepl(d78, label=0, method="GBM", output="p-counts")
+  d.n0.clr <- data.frame(codaSeq.clr(d.n0, samples.by.row=TRUE))
+  d.n0.sym.phi <- propr.phisym(d.n0.clr)
+  d.n0.sma <- sma.df(d.n0.clr)
+  lt <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=FALSE)
+  lt.ind <- which(col(d.n0.sma$b)<row(d.n0.sma$b), arr.ind=TRUE)
+  d.n0.phi.min <- lt.row.min(d.n0.sym.phi)
+  d.n0.sma.df <- data.frame(row=factor(rownames(d.n0.sma$b)[lt.ind[,"row"]]), col=factor(colnames(d.n0.sma$b)[lt.ind[,"col"]]))
+  d.n0.sma.df$b <- d.n0.sma$b[lt]
+  d.n0.sma.df$p <- d.n0.sma$p[lt]
+  d.n0.sma.df$r2 <- d.n0.sma$r2[lt]
+  d.n0.sma.df$phi <- d.n0.sym.phi[lt]
+  CoDa.d78 <- d.n0.sma.df
+  saveRDS(CoDa.d78, paste0("BFT.CoDa.df.2021.08.16/CoDa.crossBF.Leaf.", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  }
+  
+#CoDa(fq, abu, "Control", 2, 9)
+#CoDa(fq, abu, "Pre_flowering_drought", 2, 9)
+#CoDa(fq, abu, "Control", 8, 18)
+#CoDa(fq, abu, "Pre_flowering_drought", 8, 18)
+#CoDa(fq, abu, "Control", 9, 18)
+#CoDa(fq, abu, "Post_flowering_drought", 9, 18)
+ 
+
+######################################
+# significant positive correlations #
+#####################################
+rm(list=ls())
+setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
+BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+
+r.cutoff = 0.1
+p.cutoff = 0.05
+phi.cutoff <- 0.25
+
+CoDa.Rsig<-function(fq, abu, habitat, treatment, tpA, tpB){
+d1 <- readRDS(paste0("BFT.CoDa.df.2021.08.16/data.bac.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+d2 <- readRDS(paste0("BFT.CoDa.df.2021.08.16/data.fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+d12 <- data.frame(d1, d2)
+d.n0.sma.df <- readRDS(paste0("BFT.CoDa.df.2021.08.16/CoDa.crossBF.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da.tmp <- subset(d.n0.sma.df, phi < phi.cutoff)
+  V1<-data.frame("v1"=da.tmp$row); V2<-data.frame("v2"=da.tmp$col)
+  IDsub1<-ID.tmp[ID.tmp$OTU.ID %in% V1$v1, ]; IDsub2<-ID.tmp[ID.tmp$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  df.tmp<-data.frame(da.tmp, M1, M2)
+  
+  saveRDS(df.tmp, paste0("BFT.CoDa.sig.df.2021.08.16/CoDa.Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  }
+
+##CoDa.Rsig(fq, abu,"Root", "Control", 2, 9)
+##CoDa.Rsig(fq, abu,"Root", "Pre_flowering_drought", 2, 9)
+#CoDa.Rsig(fq, abu,"Root", "Control", 8, 18)
+#CoDa.Rsig(fq, abu,"Root", "Pre_flowering_drought", 8, 18)
+#CoDa.Rsig(fq, abu,"Root", "Control", 9, 18)
+#CoDa.Rsig(fq, abu,"Root", "Post_flowering_drought", 9, 18)
+
+#CoDa.Rsig(fq, abu,"Rhizosphere", "Control", 2, 9)
+#CoDa.Rsig(fq, abu,"Rhizosphere", "Pre_flowering_drought", 2, 9)
+#CoDa.Rsig(fq, abu,"Rhizosphere", "Control", 8, 18)
+#CoDa.Rsig(fq, abu,"Rhizosphere", "Pre_flowering_drought", 8, 18)
+#CoDa.Rsig(fq, abu,"Rhizosphere", "Control", 9, 18)
+#CoDa.Rsig(fq, abu,"Rhizosphere", "Post_flowering_drought", 9, 18)
+
+#CoDa.Rsig(fq, abu,"Soil", "Control", 2, 9)
+#CoDa.Rsig(fq, abu,"Soil", "Pre_flowering_drought", 2, 9)
+#CoDa.Rsig(fq, abu,"Soil", "Control", 8, 18)
+#CoDa.Rsig(fq, abu,"Soil", "Pre_flowering_drought", 8, 18)
+#CoDa.Rsig(fq, abu,"Soil", "Control", 9, 18)
+#CoDa.Rsig(fq, abu,"Soil", "Post_flowering_drought", 9, 18)
+
+#CoDa.Rsig(fq, abu,"Leaf", "Control", 2, 9)
+#CoDa.Rsig(fq, abu,"Leaf", "Pre_flowering_drought", 2, 9)
+#CoDa.Rsig(fq, abu,"Leaf", "Control", 8, 18)
+#CoDa.Rsig(fq, abu,"Leaf", "Pre_flowering_drought", 8, 18)
+#CoDa.Rsig(fq, abu,"Leaf", "Control", 9, 18)
+#CoDa.Rsig(fq, abu,"Leaf", "Post_flowering_drought", 9, 18)
+
+fq <- 7; abu <- 19; 
+  
+library(igraph)
+bac.fung.cross.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  
+  da<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  g.color$Kingdom1 <- factor(g.color$Kingdom,  labels = c("blue", "black"))
+  levels(g.color$Kingdom1) = c("blue", "black") 
+  V(g)$color = as.character(g.color$Kingdom1)
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=5) 
+}
+
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.fung.cross.net("CoDa",fq, abu,"Root","Control", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Root","Control", 8, 18)
+bac.fung.cross.net("CoDa",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+
+bac.fung.cross.net("CoDa",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.fung.cross.net("CoDa",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+
+bac.fung.cross.net("CoDa",fq, abu,"Soil","Control", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Soil","Control", 8, 18)
+bac.fung.cross.net("CoDa",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+
+bac.fung.cross.net("CoDa",fq, abu,"Leaf","Control", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.fung.cross.net("CoDa",fq, abu,"Leaf","Control", 8, 18)
+bac.fung.cross.net("CoDa",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+
+##################
+# Fungal network #
+##################
+fq <- 7; abu <- 19; 
+fung.intra.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  ID.tmp$shape <- "circle"; ID.tmp$shape[ID.tmp$Kingdom=="Eukaryote"]<-"square"
+  ID.tmp$color <- "grey"
+  ID.tmp$color[ID.tmp$Funguild=="Plant pathogen"] <- "purple"
+  ID.tmp$color[ID.tmp$Funguild=="SaprotrophYeast"] <- "red"
+  ID.tmp$color[ID.tmp$Funguild=="Plant pathogenYeast"] <- "red"
+  ID.tmp$color[ID.tmp$Funguild=="Saprotroph"] <- "brown"
+  ID.tmp$color[ID.tmp$Funguild=="Arbuscular mycorrhizal"] <- "green"
+  ID.tmp$color[ID.tmp$Funguild=="Endophyte"] <- "blue"
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom == "Eukaryote" & da0$Kingdom.1 == "Eukaryote",]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  V(g)$color = as.character(g.color$color)
+  V(g)$shape <-as.character(g.color$shape)
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=5) 
+}
+
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+fung.intra.net("CoDa",fq, abu,"Root","Control", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Root","Control", 8, 18)
+fung.intra.net("CoDa",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+
+fung.intra.net("CoDa",fq, abu,"Rhizosphere","Control", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Rhizosphere","Control", 8, 18)
+fung.intra.net("CoDa",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+
+fung.intra.net("CoDa",fq, abu,"Soil","Control", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Soil","Control", 8, 18)
+fung.intra.net("CoDa",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+
+fung.intra.net("CoDa",fq, abu,"Leaf","Control", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+fung.intra.net("CoDa",fq, abu,"Leaf","Control", 8, 18)
+fung.intra.net("CoDa",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+
+####################
+#Bacterial network##
+####################
+bac.intra.net<-function(type,fq, abu, habitat, treatment, tpA, tpB){
+  BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
+  ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
+  ID.tmp$shape <- "circle"; ID.tmp$shape[ID.tmp$Kingdom=="Eukaryote"]<-"square"
+  ID.tmp$color <- "grey"
+  ID.tmp$color[ID.tmp$Phylum=="Acidobacteria"] <- "blue"
+  ID.tmp$color[ID.tmp$Phylum=="Actinobacteria"] <- "red"
+  ID.tmp$color[ID.tmp$Phylum=="Bacteroidetes"] <- "black"
+  ID.tmp$color[ID.tmp$Phylum=="Proteobacteria"] <- "green"
+  ID.tmp$color[ID.tmp$Phylum=="Chloroflexi"] <- "brown"
+  ID.tmp$color[ID.tmp$Phylum=="Firmicutes"] <- "yellow"
+  ID.tmp$color[ID.tmp$Phylum=="Gemmatimonadetes"] <- "pink"
+  ID.tmp$color[ID.tmp$Phylum=="Verrucomicrobia"] <- "purple"
+  
+  da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
+  da <- da0[da0$Kingdom == "Prokaryote" & da0$Kingdom.1 == "Prokaryote",]
+  
+  g <- graph.data.frame(da, directed=FALSE)
+  g.color = droplevels(ID.tmp[ID.tmp$OTU.ID %in% V(g)$name,])
+  g.color<-g.color[match(V(g)$name, g.color$OTU.ID),]
+  V(g)$color = as.character(g.color$color)
+  V(g)$shape <-as.character(g.color$shape)
+  g.E <-data.frame(get.edgelist(g))
+  names(g.E)<- c("V1", "V2")
+  
+  V1<-data.frame("v1"=g.E$V1)
+  V2<-data.frame("v2"=g.E$V2)
+  
+  ID.tmpx<-ID.tmp[,c("OTU.ID", "Kingdom")]
+  IDsub1<-ID.tmpx[ID.tmpx$OTU.ID %in% V1$v1, ]
+  IDsub2<-ID.tmpx[ID.tmpx$OTU.ID %in% V2$v2, ]
+  V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
+  M1<-merge(V1, IDsub1, by.x = "v1", by.y = "OTU.ID", all.x= T); M1<-M1[order(M1$id), ]
+  M2<-merge(V2, IDsub2, by.x = "v2", by.y = "OTU.ID", all.x = T); M2<-M2[order(M2$id), ]
+  
+  M1$BF<-"red"
+  M1$BF[M1$Kingdom=="Prokaryote" & M2$Kingdom=="Prokaryote" ]<-"grey"
+  M1$BF[M1$Kingdom=="Eukaryote" & M2$Kingdom=="Eukaryote" ]<-"skyblue"
+  
+  E(g)$color = as.character(M1$BF)
+  
+  set.seed(123)
+  plot(g, edge.width=1,  vertex.frame.color=NA,vertex.label=NA,edge.lty=1, edge.curved=T,vertex.size=5) 
+}
+
+par(mfrow=c(4,4),mar=c(0, 0, 0, 0))
+bac.intra.net("CoDa",fq, abu,"Root","Control", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Root","Pre_flowering_drought", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Root","Control", 8, 18)
+bac.intra.net("CoDa",fq, abu,"Root","Pre_flowering_drought", 8, 18)
+
+bac.intra.net("CoDa",fq, abu,"Rhizosphere","Control", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Rhizosphere","Pre_flowering_drought", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Rhizosphere","Control", 8, 18)
+bac.intra.net("CoDa",fq, abu,"Rhizosphere","Pre_flowering_drought", 8, 18)
+
+bac.intra.net("CoDa",fq, abu,"Soil","Control", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Soil","Pre_flowering_drought", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Soil","Control", 8, 18)
+bac.intra.net("CoDa",fq, abu,"Soil","Pre_flowering_drought", 8, 18)
+
+bac.intra.net("CoDa",fq, abu,"Leaf","Control", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Leaf","Pre_flowering_drought", 2, 9)
+bac.intra.net("CoDa",fq, abu,"Leaf","Control", 8, 18)
+bac.intra.net("CoDa",fq, abu,"Leaf","Pre_flowering_drought", 8, 18)
+
+```
+

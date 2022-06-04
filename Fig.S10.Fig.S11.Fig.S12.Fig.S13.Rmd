@@ -10,28 +10,21 @@ library(vegan)
 library(psych)##
 library(igraph)
 library(beepr)
+library(brainGraph)##
 setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
 habitat <- "Root"; treatment <- "Control"; tpA <- 8; tpB <- 18; type = "SpMan"; fq= 7; abu = 19
 
-library(igraph)
-library(brainGraph)##
 ZiPiBF<-function(habitat, treatment, tpA, tpB){
   BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
   ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
-  
   da<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
-  
   g <- graph.data.frame(da, directed=FALSE)
   
-  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
-  #modularity(fun.fc)##0.785,模块性大于0.45，说明网络有效##
+  fun.fc<-cluster_fast_greedy(g)#
   modu<-membership(fun.fc)
   otu.name<-names(modu)
   membership1<-data.frame(cbind(otu.name,modu))
-  
-  ###Calculate vertex participation coefficient
   Pi<-part_coeff(g, modu)
-  ###Calculate vertex within-module degree z-score
   Zi<-within_module_deg_z_score(g, modu)
   
   Pi.cutoff=0.62
@@ -65,15 +58,11 @@ ZiPiBF<-function(habitat, treatment, tpA, tpB){
   
   g <- graph.data.frame(da, directed=FALSE)
   
-  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
-  #modularity(fun.fc)##0.785,模块性大于0.45，说明网络有效##
+  fun.fc<-cluster_fast_greedy(g)##
   modu<-membership(fun.fc)
   otu.name<-names(modu)
   membership1<-data.frame(cbind(otu.name,modu))
-  
-  ###Calculate vertex participation coefficient
   Pi<-part_coeff(g, modu)
-  ###Calculate vertex within-module degree z-score
   Zi<-within_module_deg_z_score(g, modu)
   
   Pi.cutoff=0.62
@@ -104,18 +93,12 @@ ZiPiBF<-function(habitat, treatment, tpA, tpB){
   
   da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
   da <- da0[da0$Kingdom == "Eukaryote" & da0$Kingdom.1 == "Eukaryote",]
-  
   g <- graph.data.frame(da, directed=FALSE)
-  
-  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
-  #modularity(fun.fc)##0.785,模块性大于0.45，说明网络有效##
+  fun.fc<-cluster_fast_greedy(g)##
   modu<-membership(fun.fc)
   otu.name<-names(modu)
   membership1<-data.frame(cbind(otu.name,modu))
-  
-  ###Calculate vertex participation coefficient
   Pi<-part_coeff(g, modu)
-  ###Calculate vertex within-module degree z-score
   Zi<-within_module_deg_z_score(g, modu)
   
   Pi.cutoff=0.62
@@ -146,18 +129,12 @@ ZiPiBF<-function(habitat, treatment, tpA, tpB){
   
   da0<-readRDS(paste0("Fig.3/BFT.",type,".sig.df.2022.05.31/",type,".Rsig.Bac-Fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
   da <- da0[da0$Kingdom == "Prokaryote" & da0$Kingdom.1 == "Prokaryote",]
-  
   g <- graph.data.frame(da, directed=FALSE)
-  
-  fun.fc<-cluster_fast_greedy(g)##针对无方向graph
-  #modularity(fun.fc)##0.785,模块性大于0.45，说明网络有效##
+  fun.fc<-cluster_fast_greedy(g)##
   modu<-membership(fun.fc)
   otu.name<-names(modu)
   membership1<-data.frame(cbind(otu.name,modu))
-  
-  ###Calculate vertex participation coefficient
   Pi<-part_coeff(g, modu)
-  ###Calculate vertex within-module degree z-score
   Zi<-within_module_deg_z_score(g, modu)
   
   Pi.cutoff=0.62
@@ -204,7 +181,6 @@ ZiPiBF("Leaf","Pre_flowering_drought", 8, 18)
 library(beepr)
 beep()
 
-
 library(plyr) 
 library(tidyverse) 
 mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.3/SpMan.cross.BF.ZiPi"
@@ -216,8 +192,6 @@ Zi.cutoff=2.5
 
 PiZi <- PiZi0[PiZi0$network == "crossBF",]
 PiZi <- PiZi[PiZi$tpA!= 9,]
-
-#PiZi$tpA
 
 PiZi <- droplevels(PiZi[!(PiZi$Habitat=="Leaf" & PiZi$tpA == 2),])
 
@@ -240,7 +214,6 @@ ggplot(PiZi, aes(x=Pi, y=Zi, shape = Kingdom2, color = Treatment3)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold",angle = 45),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("crossBF.ZiPi.2021.09.03.pdf", width = 6, height = 6)
 
 data<-droplevels(subset(PiZi, Pi > Pi.cutoff | Zi > Zi.cutoff ))
 write.csv(data,"Fig.3/Keystone/crossBF.ZiPi.keystone.2022.05.31.csv")
@@ -258,7 +231,6 @@ names(data.agg1) <- c("Occurence", "Treatment", "Phylum", "Funguild","Habitat", 
 data.agg1<-droplevels(data.agg1[data.agg1$Phylum!="X_" & data.agg1$Phylum!="Other" & data.agg1$Phylum!="_" ,  ])
 data.agg1$fac <- paste(data.agg1$Treatment,  data.agg1$Habitat, data.agg1$Treatment1, sep=".")
 
-#data.agg1$Phylum
 library(reshape2)
 data_wide <- dcast(data.agg1,  Phylum ~fac, value.var="Occurence")
 data_wide[is.na(data_wide)] = 0
@@ -285,7 +257,6 @@ fung.L2<-cSplit(fung.L2, "Group.1", ".")
 names(fung.L2)<-c("Phylum","Keystone", "Treatment", "Habitat", "Treatment1")
 fung.L2$Phylum<-"Other"
 
-
 data.agg1<-rbind(fung.L1, fung.L2)
 col11<-c("darkblue","red","#ff00ff", "deepskyblue", "gold", "blue", "navy", "darkgreen","black", "orange", "purple", "grey")
 
@@ -307,9 +278,6 @@ ggplot(data.agg1, aes(x = Treatment3, y = Keystone, fill=Phylum)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold"),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("ZiPi.crossBF.KeystoneTaxa.2021.09.03.pdf", width = 6, height = 6)
-
-
 
 ##########
 #interBF##
@@ -325,8 +293,6 @@ Zi.cutoff=2.5
 
 PiZi <- PiZi0[PiZi0$network == "interBF",]
 PiZi <- PiZi[PiZi$tpA!= 9,]
-
-#PiZi$tpA
 
 PiZi <- droplevels(PiZi[!(PiZi$Habitat=="Leaf" & PiZi$tpA == 2),])
 
@@ -350,7 +316,6 @@ ggplot(PiZi, aes(x=Pi, y=Zi, shape = Kingdom2,  color = Treatment3)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold",angle = 45),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("interBF.ZiPi.2021.09.03.pdf", width = 6, height = 6)
 
 data<-droplevels(subset(PiZi, Pi > Pi.cutoff | Zi > Zi.cutoff ))
 write.csv(data,"Fig.3/Keystone/interBF.ZiPi.keystone.2022.05.31.csv")
@@ -368,7 +333,6 @@ names(data.agg1) <- c("Occurence", "Treatment", "Phylum", "Funguild","Habitat", 
 data.agg1<-droplevels(data.agg1[data.agg1$Phylum!="X_" & data.agg1$Phylum!="Other" & data.agg1$Phylum!="_" ,  ])
 data.agg1$fac <- paste(data.agg1$Treatment,  data.agg1$Habitat, data.agg1$Treatment1, sep=".")
 
-#data.agg1$Phylum
 library(reshape2)
 data_wide <- dcast(data.agg1,  Phylum ~fac, value.var="Occurence")
 data_wide[is.na(data_wide)] = 0
@@ -395,7 +359,6 @@ fung.L2<-cSplit(fung.L2, "Group.1", ".")
 names(fung.L2)<-c("Phylum","Keystone", "Treatment", "Habitat", "Treatment1")
 fung.L2$Phylum<-"Other"
 
-
 data.agg1<-rbind(fung.L1, fung.L2)
 col11<-c("darkblue","red","#ff00ff", "deepskyblue", "gold", "blue", "navy", "darkgreen","black", "orange", "purple", "grey")
 
@@ -417,8 +380,6 @@ ggplot(data.agg1, aes(x = Treatment3, y = Keystone, fill=Phylum)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold"),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("ZiPi.interBF.KeystoneTaxa.2021.09.03.pdf", width = 6, height = 6)
-
 
 ####################
 #Functional Guilds##
@@ -434,8 +395,6 @@ Zi.cutoff=2.5
 
 PiZi <- PiZi0[PiZi0$network == "Fung-Fung",]
 PiZi <- PiZi[PiZi$tpA!= 9,]
-
-PiZi$tpA
 
 PiZi <- droplevels(PiZi[!(PiZi$Habitat=="Leaf" & PiZi$tpA == 2),])
 
@@ -458,7 +417,6 @@ ggplot(PiZi, aes(x=Pi, y=Zi,  color = Treatment3)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold",angle = 45),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("Fung.ZiPi.2021.09.03.pdf", width = 6, height = 6)
 
 data<-droplevels(subset(PiZi, Pi > Pi.cutoff | Zi > Zi.cutoff ))
 write.csv(data,"Fig.3/Keystone/Fung.ZiPi.keystone.2022.05.31.csv")
@@ -476,8 +434,6 @@ names(data.agg1) <- c("Occurence", "Treatment", "Phylum", "Funguild","Habitat", 
 data.agg1<-droplevels(data.agg1[data.agg1$Phylum!="X_" & data.agg1$Phylum!="Other" & data.agg1$Phylum!="_" & data.agg1$Funguild!="_",  ])
 data.agg1$fac <- paste(data.agg1$Treatment,  data.agg1$Habitat, data.agg1$Treatment1, sep=".")
 
-
-#data.agg1$Phylum
 library(reshape2)
 data_wide <- dcast(data.agg1,  Funguild ~fac, value.var="Occurence")
 data_wide[is.na(data_wide)] = 0
@@ -519,7 +475,6 @@ ggplot(data.agg1, aes(x = Treatment3, y = Keystone, fill=Funguild)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold"),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("ZiPi.Fung.KeystoneTaxa.2021.09.03.pdf", width = 6, height = 6)
 
 ######
 ### BAC
@@ -536,10 +491,6 @@ Zi.cutoff=2.5
 
 PiZi <- PiZi0[PiZi0$network == "Bac-Bac",]
 PiZi <- PiZi[PiZi$tpA!= 9,]
-
-#PiZi$tpA
-
-#PiZi <- droplevels(PiZi[!(PiZi$Habitat=="Leaf" & PiZi$tpA == 2),])
 
 PiZi$Habitat<-factor(PiZi$Habitat, levels = c("Root", "Rhizosphere", "Soil", "Leaf"))
 PiZi$Treatment1<-factor(PiZi$tpA, labels = c("Drought period", "Rewetting period"))
@@ -560,7 +511,6 @@ ggplot(PiZi, aes(x=Pi, y=Zi,  color = Treatment3)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold",angle = 45),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("ZiPi.Bac.2021.09.03.pdf", width = 6, height = 6)
 
 data<-droplevels(subset(PiZi, Pi > Pi.cutoff | Zi > Zi.cutoff ))
 write.csv(data,"Fig.3/Keystone/ZiPi.Bac.keystone.2021.09.03.csv")
@@ -622,10 +572,6 @@ ggplot(data.agg1, aes(x = Treatment3, y = Keystone, fill=Phylum)) +
         axis.text.y=element_text(size=8,face="bold"),
         axis.text.x=element_text(size=8,face="bold"),
         axis.title=element_text(size=8,face="bold"))
-#ggsave("ZiPi.Bac.KeystoneTaxa.2021.09.03.pdf", width = 6, height = 6)
-
-
-
 
 setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
 
@@ -634,20 +580,12 @@ da2<-read.csv("Fig.3/Keystone/Fung.ZiPi.keystone.2022.05.31.csv", head = T)
 da3<-read.csv("Fig.3/Keystone/interBF.ZiPi.keystone.2022.05.31.csv", head = T)
 da4<-read.csv("Fig.3/Keystone/crossBF.ZiPi.keystone.2022.05.31.csv", head = T)
 
-colnames(da1)
-colnames(da2)
-colnames(da3)
-colnames(da4)
-
 da3$Kingdom2<-NULL
 da4$Kingdom2<-NULL
 da<-rbind(da1, da2, da3, da4 )
 
-colnames(da)
 dax<-da[, c("otu.name", "Kingdom","Phylum", "Class", "Order", "Family","Genus", "Funguild","Habitat", "Treatment1", "Treatment2","network","Zi","Pi", "group")]
-
 colnames(dax) <- c("otu.name", "Kingdom","Phylum", "Class", "Order", "Family","Genus", "Fungal Guild","Compartment", "Time period", "Treatment","Network type","Zi","Pi", "Hub type")
-
 write.csv(dax, "Fig.3/Keystone/SuppDATA.S1.Hubs.csv")
 ```
 

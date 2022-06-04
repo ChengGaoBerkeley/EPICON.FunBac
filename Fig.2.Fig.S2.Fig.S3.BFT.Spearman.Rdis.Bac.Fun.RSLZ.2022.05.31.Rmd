@@ -6,19 +6,13 @@ output: html_document
 ```{r, message=FALSE, warning=FALSE, fig.height = 10, fig.width = 16}
 rm(list=ls())
 library(vegan)
-#library(SpiecEasi)
 library(psych)##
 library(igraph)
-#setwd("~/GaoC/R")
 library(beepr)
 setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
-
 load("Bac.Fung.data.prep.stopby8datasets.amfL.RSLZxBF.Rarefaction.2021.08.13.rdata")
-
 BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
 ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
-
-#habitat <- "Root"; treatment <- "Control"; tpA <- 2; tpB <- 9
 
 fq <- 7; abu <- 19; 
 
@@ -95,22 +89,14 @@ SpMan<-function(fq, abu, treatment, tpA, tpB){
 
 rm(list=ls())
 fq <- 7; abu <- 19; 
-#setwd("~/GaoC/R")
 setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
 BF0<-read.csv("Microbiome/0000BacteriaFungi.1029x1293.13165.2019.07.10.csv", head = T, row.names = 1)
 ID.tmp<-BF0[,c("Kingdom",	"Kingdom1",	"Phylum",	"Class",	"Order",	"Family",	"Genus",	"Funguild",	"OTU.ID",	"Morph",	"Morph1")]
-
-
-#habitat <- "Root"; treatment <- "Control"; tpA <- 2; tpB <- 9
-
-#r.cutoff = 0.6
-#p.cutoff = 0.05
 
 SpMan.Rall<-function(fq, abu, habitat, treatment, tpA, tpB){
   d1 <- readRDS(paste0("Fig.2/BFT.SpMan.df.2022.05.31/data.bac.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
   d2 <- readRDS(paste0("Fig.2/BFT.SpMan.df.2022.05.31/data.fung.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
   d12 <- data.frame(d1, d2)
-  
   
   spman.r0 <- readRDS(paste0("Fig.2/BFT.SpMan.df.2022.05.31/SpMan.crossBF.",habitat,".", treatment,".",tpA,".",tpB,".",fq,".",abu,".RDS"))
   
@@ -123,7 +109,6 @@ SpMan.Rall<-function(fq, abu, habitat, treatment, tpA, tpB){
                    col=colnames(P0)[col(P0)[upper.tri(P0)]], p=P0[upper.tri(P0)])
   
   da.tmp<-df.sig<- df <- data.frame(Cor.df,   Habitat = habitat, Treatment = treatment, TPA = tpA)
-   #df[ df$Cor > r.cutoff & df$p < p.cutoff,] 
   V1<-data.frame("v1"=da.tmp$row); V2<-data.frame("v2"=da.tmp$col)
   IDsub1<-ID.tmp[ID.tmp$OTU.ID %in% V1$v1, ]; IDsub2<-ID.tmp[ID.tmp$OTU.ID %in% V2$v2, ]
   V1$id  <- 1:nrow(V1); V2$id  <- 1:nrow(V2)
@@ -152,28 +137,22 @@ SpMan.Rall<-function(fq, abu, habitat, treatment, tpA, tpB){
 #SpMan.Rall(fq, abu,"Soil", "Control", 8, 18)
 #SpMan.Rall(fq, abu,"Soil", "Pre_flowering_drought", 8, 18)
 
-
 #SpMan.Rall(fq, abu,"Leaf", "Control", 2, 9)
 #SpMan.Rall(fq, abu,"Leaf", "Pre_flowering_drought", 2, 9)
 #SpMan.Rall(fq, abu,"Leaf", "Control", 8, 18)
 #SpMan.Rall(fq, abu,"Leaf", "Pre_flowering_drought", 8, 18)
 
-
-
-
 rm(list=ls())
 library(tidyverse)
-library(vegan)##decostand
-#library(WGCNA)##corAndPvalue
-library(multtest)##mt.rawp2adjp
-library(igraph)##graph.adjacency    delete.vertices
-library(psych)##
-library(brainGraph)##
+library(vegan)
+library(multtest)
+library(igraph)
+library(psych)
+library(brainGraph)
 library(ggrepel)
 library(dplyr)
 library(plyr)
 library(readr)
-#library(SpiecEasi) #clr
 library(tidyverse)  
 library(ggthemes)
 library(beepr)
@@ -182,19 +161,13 @@ setwd("/Users/chenggao/Google_Drive/EPICON.NC.2022")
 mydir = "/Users/chenggao/Google_Drive/EPICON.NC.2022/Fig.2/BFT.SpMan.all.df.2022.05.31"
 
 da.Rdis <- list.files(path=mydir, full.names=TRUE) %>% map_dfr(readRDS)
-
 da.Rdis$TPA<-factor(da.Rdis$TPA, labels=c("Drought_period" , "Rewetting_period"))
 da.Rdis$Treatment<-factor(da.Rdis$Treatment, labels = c("Control", "Drought/Rewetting"))
 da.Rdis$Links<-factor(da.Rdis$Link)
 da.Rdis$intera<-factor(paste(da.Rdis$Links, da.Rdis$Treatment, da.Rdis$TPA, da.Rdis$Habitat))
-
-#levels(da.Rdis$intera)
-
 da.Rdis <-droplevels(da.Rdis[!(da.Rdis$Habitat=="Leaf" & da.Rdis$TPA=="Drought_period" & da.Rdis$Links!= "Bac_Bac"), ])
 
-#da.Rdis$Links
-
-library(splitstackshape)  #cSplit
+library(splitstackshape)
 dia_me <- ddply(da.Rdis, .(intera), numcolwise(median))
 dia_med<-cSplit(dia_me, "intera", " ")
 
@@ -203,16 +176,10 @@ dia_med$Treatment<-dia_med$intera_2
 dia_med$TPA<-dia_med$intera_3
 dia_med$Habitat<-dia_med$intera_4
 
-library(forcats) # fct_collapse
-#da.Rdis$Treatment2<-fct_collapse(da.Rdis$Treatment, Stress = c('PRE', 'POST'))
-#dia_med$Treatment2<-fct_collapse(dia_med$Treatment, Stress = c('PRE', 'POST'))
-
+library(forcats) # 
 da.Rdis$Habitat<-factor(da.Rdis$Habitat, levels = c("Root", "Rhizosphere", "Soil", "Leaf"))
 dia_med$Habitat<-factor(dia_med$Habitat, levels = c("Root", "Rhizosphere", "Soil", "Leaf"))
 
-#sum(is.na(da.Rdis$Habitat))
-#colnames(da.Rdis)
-## figure size 14 x 4, density plot
 ggplot(da.Rdis, aes(x= Cor, color = Links, linetype = Treatment)) + 
   geom_density(size=0.5)+
   scale_color_manual(values = c("black", "blue","red", "cyan", "yellow", "red"))+
@@ -227,7 +194,6 @@ ggplot(da.Rdis, aes(x= Cor, color = Links, linetype = Treatment)) +
         legend.text = element_text(colour="black", size=12, face="bold"),
         axis.text=element_text(size=8,face="bold"),
         axis.title=element_text(size=12,face="bold"))
-#ggsave("BFT.bac.fung.RSLZ.Rdensity.2021.08.27.pdf", width = 16, height = 10)
 beep()
 
 ```
@@ -249,10 +215,7 @@ ggplot(da.Rdis, aes(x= as.numeric(Treatment),y= Cor, color = Habitat, linetype= 
         axis.text.x=element_text(colour="black",size=10,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=10,face="bold"))
-#ggsave("BFT.bac.fung.RSLZ.Rall.CK.Stress.2021.08.27.pdf", width = 6, height = 3)
-library(beepr)
 beep()
-
 
 ggplot(da.Rdis[da.Rdis$Cor>0,], aes(x= as.numeric(Treatment),y= Cor, color = Habitat, linetype= Links)) + 
   geom_smooth(method='lm', size =0.5, se = FALSE)+
@@ -269,8 +232,6 @@ ggplot(da.Rdis[da.Rdis$Cor>0,], aes(x= as.numeric(Treatment),y= Cor, color = Hab
         axis.text.x=element_text(colour="black",size=10,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=10,face="bold"))
-#ggsave("BFT.bac.fung.RSLZ.Rpos.CK.Stress.2021.08.27.pdf", width = 6, height = 3)
-library(beepr)
 beep()
 
 ggplot(da.Rdis[da.Rdis$Cor<0,], aes(x= as.numeric(Treatment),y= Cor * -1, color = Habitat, linetype= Links)) + 
@@ -288,8 +249,6 @@ ggplot(da.Rdis[da.Rdis$Cor<0,], aes(x= as.numeric(Treatment),y= Cor * -1, color 
         axis.text.x=element_text(colour="black",size=10,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=10,face="bold"))
-#ggsave("BFT.bac.fung.RSLZ.Rneg.CK.Stress.2021.08.27.pdf", width = 6, height = 3)
-library(beepr)
 beep()
 ```
 
@@ -298,7 +257,6 @@ beep()
 ggplot(da.Rdis, aes(x= as.numeric(Treatment),y= Cor, color = Habitat)) + 
   geom_smooth(method='lm', size =5, se = FALSE)+
   scale_color_manual(values = c("black", "blue","red", "cyan","brown",  "yellow"))+
-  #scale_linetype_manual(values = c(3, 1, 2))+
   geom_jitter(size = 0.1, alpha = 0.1)+
   xlab("")+ylab("All Spearman's Rho")+theme_bw()+
   guides(fill=guide_legend(title= "Type"))+
@@ -311,15 +269,11 @@ ggplot(da.Rdis, aes(x= as.numeric(Treatment),y= Cor, color = Habitat)) +
         axis.text.x=element_text(colour="black",size=10,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=10,face="bold"))
-library(beepr)
 beep()
-
-
 
 ggplot(da.Rdis[da.Rdis$Cor>0,], aes(x= as.numeric(Treatment),y= Cor, color = Habitat)) + 
   geom_smooth(method='lm', size =5, se = FALSE)+
   scale_color_manual(values = c("black", "blue","red", "cyan","brown",  "yellow"))+
-  #scale_linetype_manual(values = c(3, 1, 2))+
   geom_jitter(size = 0.1, alpha = 0.1)+
   xlab("")+ylab("Postive Spearman's Rho")+theme_bw()+
   guides(fill=guide_legend(title= "Type"))+
@@ -332,14 +286,12 @@ ggplot(da.Rdis[da.Rdis$Cor>0,], aes(x= as.numeric(Treatment),y= Cor, color = Hab
         axis.text.x=element_text(colour="black",size=10,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=10,face="bold"))
-
 beep()
 
 
 ggplot(da.Rdis[da.Rdis$Cor<0,], aes(x= as.numeric(Treatment),y= Cor* -1, color = Habitat)) + 
   geom_smooth(method='lm', size =5, se = FALSE)+
   scale_color_manual(values = c("black", "blue","red", "cyan","brown",  "yellow"))+
-  #scale_linetype_manual(values = c(3, 1, 2))+
   geom_jitter(size = 0.1, alpha = 0.1)+
   xlab("")+ylab("Negative Spearman's Rho * -1")+theme_bw()+
   guides(fill=guide_legend(title= "Type"))+
@@ -352,9 +304,7 @@ ggplot(da.Rdis[da.Rdis$Cor<0,], aes(x= as.numeric(Treatment),y= Cor* -1, color =
         axis.text.x=element_text(colour="black",size=10,face="bold",angle = 90, hjust = 1),
         axis.text.y=element_text(colour="black",size=8,face="bold"),
         axis.title=element_text(colour="black",size=10,face="bold"))
-
 beep()
-
 ```
 
 
