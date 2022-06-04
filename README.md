@@ -1,7 +1,7 @@
 # EPICON.FunBac
 # Contact: Cheng Gao
 # University of California Berkeley; Institute of Microbiology, Chinese Academy of Sciences
-# email: gaochengaob@126.com
+# email: gaoc@im.ac.cn;gaochengaob@126.com
 # twitter: @chenggucb
 ######  ###### ########
 
